@@ -5,4 +5,17 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<PackageId>CodeGenerationPlayground</PackageId>
+		<Version>1.0.0</Version>
+		<Title>CodeGenerationPlayground</Title>
+		<Description>Package for playing around with code generation and NuGet</Description>
+		<Authors>Maikel Bos</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Copyright>Copyright © 2025 Maikel Bos</Copyright>
+		<PackageProjectUrl>https://github.com/maikelbos0/CodeGenerationPlayground</PackageProjectUrl>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageOutputPath>$(MSBuildThisFileDirectory)..\Packages</PackageOutputPath>
+	</PropertyGroup>
+
 </Project>

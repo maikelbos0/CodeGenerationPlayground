@@ -1,11 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerationPlayground", "CodeGenerationPlayground\CodeGenerationPlayground.csproj", "{59E82DA7-2E78-432F-A852-A3EC062287BF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerationPlayground.Consumer", "CodeGenerationPlayground.Consumer\CodeGenerationPlayground.Consumer.csproj", "{6E77BE0B-DC83-4E26-BDA6-870391AE2C1A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{59E82DA7-2E78-432F-A852-A3EC062287BF} = {59E82DA7-2E78-432F-A852-A3EC062287BF}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerationPlayground.Tests", "CodeGenerationPlayground.Tests\CodeGenerationPlayground.Tests.csproj", "{AFD925C2-01D9-43C3-A3BD-E8EBFA203EF6}"
 EndProject
