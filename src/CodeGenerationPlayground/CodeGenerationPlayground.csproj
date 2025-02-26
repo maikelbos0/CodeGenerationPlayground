@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
+		<DevelopmentDependency>true</DevelopmentDependency>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -18,4 +19,12 @@
 		<PackageOutputPath>$(MSBuildThisFileDirectory)..\Packages</PackageOutputPath>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\CodeGenerationPlayground.Generators\CodeGenerationPlayground.Generators.csproj" GeneratePathProperty="true" PrivateAssets="All" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="$(OutputPath)\CodeGenerationPlayground.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+	</ItemGroup>
+	
 </Project>

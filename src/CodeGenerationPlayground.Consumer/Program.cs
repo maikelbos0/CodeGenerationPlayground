@@ -1,7 +1,4 @@
-﻿using CodeGenerationPlayground;
-using System;
-
-var test = new Test();
-Console.WriteLine(test.Ping());
+﻿using System;
 
 Console.ReadKey();
+
