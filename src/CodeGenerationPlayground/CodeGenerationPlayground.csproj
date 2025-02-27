@@ -20,7 +20,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\CodeGenerationPlayground.Generators\CodeGenerationPlayground.Generators.csproj" GeneratePathProperty="true" PrivateAssets="All" />
+		<ProjectReference Include="..\CodeGenerationPlayground.Generators\CodeGenerationPlayground.Generators.csproj" PrivateAssets="All" />
 	</ItemGroup>
 
 	<ItemGroup>

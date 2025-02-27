@@ -7,7 +7,6 @@ namespace CodeGenerationPlayground.Generators;
 [Generator]
 public class StaticSourceGenerator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource($"{nameof(StaticSources.PingableAttribute)}.g.cs", SourceText.From(StaticSources.PingableAttribute, Encoding.UTF8)));
-    
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource($"{nameof(StaticSources.PingableAttribute2)}.g.cs", SourceText.From(StaticSources.PingableAttribute2, Encoding.UTF8)));
     }
 }
