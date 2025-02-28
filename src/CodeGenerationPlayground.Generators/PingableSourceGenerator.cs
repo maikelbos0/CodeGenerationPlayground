@@ -19,13 +19,15 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         context.RegisterSourceOutput(methodsToGenerate, static (context, source) => {
             context.AddSource(
                 source.GetFileName(), 
-                $"// {source.GetFileName()}"
+                source.GetSource()
             );
         });
 
     }
 
     private static PingableData GetPingableData(SyntaxNode node) {
+        // TODO take into account class / method access modifiers as needed
+        // TODO take into account structs?
         var methodDeclarationSyntax = (MethodDeclarationSyntax)node;
         var classDeclarationSyntax = (methodDeclarationSyntax.Parent as ClassDeclarationSyntax);
                 
