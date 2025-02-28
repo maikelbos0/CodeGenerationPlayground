@@ -17,7 +17,10 @@ public class PingableSourceGenerator : IIncrementalGenerator {
                 static (context, _) => GetPingableData(context.TargetNode));
 
         context.RegisterSourceOutput(methodsToGenerate, static (context, source) => {
-            context.AddSource($"{source.NamespaceName}.{source.ClassName}.{source.MethodName}.g.cs", $"// {source.NamespaceName}.{source.ClassName}.{source.MethodName}");
+            context.AddSource(
+                source.GetFileName(), 
+                $"// {source.GetFileName()}"
+            );
         });
 
     }
@@ -29,9 +32,14 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         var className = classDeclarationSyntax?.Identifier.Text;
 
         var parent = classDeclarationSyntax?.Parent;
+        var parentClassNames = new List<string>();
         string? namespaceName = null;
 
         while (parent != null) {
+            if (parent is ClassDeclarationSyntax parentClassDeclarationSyntax) {
+                parentClassNames.Add(parentClassDeclarationSyntax.Identifier.Text);
+            }
+
             if (parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax) {
                 namespaceName = namespaceDeclarationSyntax.Name.ToString();
                 break;
@@ -46,8 +54,7 @@ public class PingableSourceGenerator : IIncrementalGenerator {
 
         var methodName = methodDeclarationSyntax.Identifier.Text;
 
-        // TODO parent classes
-        return new PingableData(namespaceName, className, methodName);
+        return new PingableData(namespaceName, parentClassNames, className, methodName);
     }
 
     // TODO add filters for these (and see if we can create errors):
