@@ -18,7 +18,7 @@ public class PingableSourceGenerator : IIncrementalGenerator {
 
         context.RegisterSourceOutput(methodsToGenerate, static (context, source) => {
             context.AddSource(
-                source.GetFileName(), 
+                source.Owner.GetFileName(), 
                 source.GetSource()
             );
         });
@@ -53,7 +53,8 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         var methodModifiers = string.Join(" ", methodDeclarationSyntax.Modifiers.Select(modifier => modifier.Text));
         var methodName = methodDeclarationSyntax.Identifier.Text;
 
-        return new MethodData(methodOwner, methodModifiers, methodName);
+        // TODO add filter for null owner
+        return new MethodData(methodOwner!.Value, methodModifiers, methodName);
     }
 
     // TODO add filters for these (and see if we can create errors):

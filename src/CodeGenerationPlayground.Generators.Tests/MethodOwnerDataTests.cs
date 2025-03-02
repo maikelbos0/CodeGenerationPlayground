@@ -16,4 +16,11 @@ public class MethodOwnerDataTests {
 
         Assert.Equal(expectedEquals, subject1.Equals(subject2));
     }
+
+    [Fact]
+    public void GetFileName() {
+        var subject = new MethodOwnerData(new MethodOwnerData(null, "CodeGenerationPlayground.Generators.Tests", MethodOwnerType.Namespace), "MethodOwnerDataTests", MethodOwnerType.Class);
+
+        Assert.Equal("CodeGenerationPlayground.Generators.Tests.MethodOwnerDataTests.g.cs", subject.GetFileName());
+    }
 }

@@ -4,6 +4,23 @@ using System.Text;
 namespace CodeGenerationPlayground.Generators;
 
 public record struct MethodOwnerData(IMethodOwnerData? Owner, string Name, MethodOwnerType Type) : IMethodOwnerData {
+    public readonly string GetFileName() {
+        var fileNameBuilder = new StringBuilder();
+        IMethodOwnerData? owner = this;
+
+        while (owner != null) {
+            fileNameBuilder
+                .Insert(0, ".")
+                .Insert(0, owner.Name);
+
+            owner = owner.Owner;
+        }
+
+        fileNameBuilder.Append("g.cs");
+
+        return fileNameBuilder.ToString();
+    }
+
     public readonly string TypeName => Type switch {
         MethodOwnerType.Namespace => "namespace",
         MethodOwnerType.Class => "partial class",
