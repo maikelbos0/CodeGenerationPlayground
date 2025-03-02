@@ -1,18 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 
 namespace CodeGenerationPlayground.Generators;
 
-// TODO make sure this all is comparable
-public record struct MethodData(List<MethodOwnerData> MethodOwnerData, string MethodModifiers, string MethodName) {
+public record struct MethodData(MethodOwnerData? Owner, string MethodModifiers, string MethodName) {
     public readonly string GetFileName() {
         var fileNameBuilder = new StringBuilder();
+        IMethodOwnerData? owner = Owner;
 
-        foreach (var methodOwnerData in MethodOwnerData) {
+        while (owner != null) {
             fileNameBuilder
-                .Append(methodOwnerData.Name)
-                .Append(".");
+                .Insert(0, ".")
+                .Insert(0, owner.Name);
+
+            owner = owner.Owner;
         }
 
         fileNameBuilder.Append("g.cs");
@@ -24,9 +24,7 @@ public record struct MethodData(List<MethodOwnerData> MethodOwnerData, string Me
         var indentLevel = 0;
         var sourceBuilder = new StringBuilder("/*");
 
-        foreach (var methodOwnerData in MethodOwnerData) {
-            methodOwnerData.WriteStart(sourceBuilder, ref indentLevel);
-        }
+        Owner?.WriteStart(sourceBuilder, ref indentLevel);
 
         sourceBuilder
             .Append(new string('\t', indentLevel))
@@ -35,9 +33,7 @@ public record struct MethodData(List<MethodOwnerData> MethodOwnerData, string Me
             .Append(MethodName)
             .AppendLine("() => \"Ping!\";");
 
-        foreach (var methodOwnerData in MethodOwnerData.AsEnumerable().Reverse()) {
-            methodOwnerData.WriteEnd(sourceBuilder, ref indentLevel);
-        }
+        Owner?.WriteEnd(sourceBuilder, ref indentLevel);
 
         sourceBuilder.AppendLine("*/");
 

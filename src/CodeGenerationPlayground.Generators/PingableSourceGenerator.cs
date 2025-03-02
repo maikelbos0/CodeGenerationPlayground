@@ -26,35 +26,34 @@ public class PingableSourceGenerator : IIncrementalGenerator {
     }
 
     private static MethodData GetMethodData(SyntaxNode node) {
-        // TODO take into account structs?
         var methodDeclarationSyntax = (MethodDeclarationSyntax)node;
-        var methodOwners = new List<MethodOwnerData>();
+        MethodOwnerData? methodOwner = null;
 
         var parent = methodDeclarationSyntax.Parent;
 
         while (parent != null) {
             if (parent is ClassDeclarationSyntax classDeclarationSyntax) {
-                methodOwners.Add(new MethodOwnerData(classDeclarationSyntax.Identifier.Text, MethodOwnerType.Class));
+                methodOwner = new MethodOwnerData(methodOwner, classDeclarationSyntax.Identifier.Text, MethodOwnerType.Class);
             }
             else if (parent is StructDeclarationSyntax structDeclarationSyntax) {
-                methodOwners.Add(new MethodOwnerData(structDeclarationSyntax.Identifier.Text, MethodOwnerType.Struct));
+                methodOwner = new MethodOwnerData(methodOwner, structDeclarationSyntax.Identifier.Text, MethodOwnerType.Struct);
             }
             else if (parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax) {
-                methodOwners.Add(new MethodOwnerData(namespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace));
+                methodOwner = new MethodOwnerData(methodOwner, namespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace);
             }
             else if (parent is FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclarationSyntax) {
                 // File scoped namespaces can be handled the same as normal namespaces, but we know for sure there will not be any parents above it so we can exit the loop
-                methodOwners.Add(new MethodOwnerData(fileScopedNamespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace));
+                methodOwner = new MethodOwnerData(methodOwner, fileScopedNamespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace);
                 break;
             }
 
             parent = parent.Parent;
         }
 
-        var methodModifiers = methodDeclarationSyntax.Modifiers.Select(modifier => modifier.Text).ToList();
+        var methodModifiers = string.Join(" ", methodDeclarationSyntax.Modifiers.Select(modifier => modifier.Text));
         var methodName = methodDeclarationSyntax.Identifier.Text;
 
-        return new MethodData(methodOwners, methodModifiers, methodName);
+        return new MethodData(methodOwner, methodModifiers, methodName);
     }
 
     // TODO add filters for these (and see if we can create errors):
