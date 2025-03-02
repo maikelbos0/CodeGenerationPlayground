@@ -5,7 +5,7 @@ using System.Text;
 namespace CodeGenerationPlayground.Generators;
 
 // TODO make sure this all is comparable
-public record struct MethodData(List<MethodOwnerData> MethodOwnerData, List<string> MethodModifiers, string MethodName) {
+public record struct MethodData(List<MethodOwnerData> MethodOwnerData, string MethodModifiers, string MethodName) {
     public readonly string GetFileName() {
         var fileNameBuilder = new StringBuilder();
 
@@ -30,7 +30,7 @@ public record struct MethodData(List<MethodOwnerData> MethodOwnerData, List<stri
 
         sourceBuilder
             .Append(new string('\t', indentLevel))
-            .Append(string.Join(" ", MethodModifiers))
+            .Append(MethodModifiers)
             .Append(" string ")
             .Append(MethodName)
             .AppendLine("() => \"Ping!\";");
