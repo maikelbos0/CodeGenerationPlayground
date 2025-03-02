@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerationPlayground.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerationPlayground.Generators", "CodeGenerationPlayground.Generators\CodeGenerationPlayground.Generators.csproj", "{8D853098-508A-481E-83D0-068449F541C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerationPlayground.Generators.Tests", "CodeGenerationPlayground.Generators.Tests\CodeGenerationPlayground.Generators.Tests.csproj", "{C2F28D11-188A-4A6D-8E80-DBA7107A6983}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,10 @@ Global
 		{8D853098-508A-481E-83D0-068449F541C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D853098-508A-481E-83D0-068449F541C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D853098-508A-481E-83D0-068449F541C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2F28D11-188A-4A6D-8E80-DBA7107A6983}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2F28D11-188A-4A6D-8E80-DBA7107A6983}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2F28D11-188A-4A6D-8E80-DBA7107A6983}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2F28D11-188A-4A6D-8E80-DBA7107A6983}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
