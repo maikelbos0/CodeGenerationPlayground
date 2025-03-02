@@ -28,25 +28,23 @@ public class PingableSourceGenerator : IIncrementalGenerator {
     private static MethodData GetMethodData(SyntaxNode node) {
         // TODO take into account structs?
         var methodDeclarationSyntax = (MethodDeclarationSyntax)node;
-        var classDeclarationSyntax = (methodDeclarationSyntax.Parent as ClassDeclarationSyntax);
-                
-        var className = classDeclarationSyntax?.Identifier.Text;
-        
-        var parent = classDeclarationSyntax?.Parent;
-        var parentClassNames = new List<string>();
-        string? namespaceName = null;
+        var methodOwners = new List<MethodOwnerData>();
+
+        var parent = methodDeclarationSyntax.Parent;
 
         while (parent != null) {
-            if (parent is ClassDeclarationSyntax parentClassDeclarationSyntax) {
-                parentClassNames.Add(parentClassDeclarationSyntax.Identifier.Text);
+            if (parent is ClassDeclarationSyntax classDeclarationSyntax) {
+                methodOwners.Add(new MethodOwnerData(classDeclarationSyntax.Identifier.Text, MethodOwnerType.Class));
             }
-
-            if (parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax) {
-                namespaceName = namespaceDeclarationSyntax.Name.ToString();
-                break;
+            else if (parent is StructDeclarationSyntax structDeclarationSyntax) {
+                methodOwners.Add(new MethodOwnerData(structDeclarationSyntax.Identifier.Text, MethodOwnerType.Struct));
+            }
+            else if (parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax) {
+                methodOwners.Add(new MethodOwnerData(namespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace));
             }
             else if (parent is FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclarationSyntax) {
-                namespaceName = fileScopedNamespaceDeclarationSyntax.Name.ToString();
+                // File scoped namespaces can be handled the same as normal namespaces, but we know for sure there will not be any parents above it so we can exit the loop
+                methodOwners.Add(new MethodOwnerData(fileScopedNamespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace));
                 break;
             }
 
@@ -56,10 +54,11 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         var methodModifiers = methodDeclarationSyntax.Modifiers.Select(modifier => modifier.Text).ToList();
         var methodName = methodDeclarationSyntax.Identifier.Text;
 
-        return new MethodData(namespaceName, parentClassNames, className, methodModifiers, methodName);
+        return new MethodData(methodOwners, methodModifiers, methodName);
     }
 
     // TODO add filters for these (and see if we can create errors):
     // && methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))
     // && type
+    // TODO group
 }

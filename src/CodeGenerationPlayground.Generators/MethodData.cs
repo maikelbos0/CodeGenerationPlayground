@@ -5,58 +5,41 @@ using System.Text;
 namespace CodeGenerationPlayground.Generators;
 
 // TODO make sure this all is comparable
-public record struct MethodData(string? NamespaceName, List<string> ParentClassNames, string? ClassName, List<string> MethodModifiers, string MethodName) {
+public record struct MethodData(List<MethodOwnerData> MethodOwnerData, List<string> MethodModifiers, string MethodName) {
     public readonly string GetFileName() {
-        var fileNameBuilder = new StringBuilder(NamespaceName);
+        var fileNameBuilder = new StringBuilder();
 
-        foreach (var parentClassName in ParentClassNames) {
+        foreach (var methodOwnerData in MethodOwnerData) {
             fileNameBuilder
-                .Append(".")
-                .Append(parentClassName);
+                .Append(methodOwnerData.Name)
+                .Append(".");
         }
 
-        fileNameBuilder
-            .Append(".")
-            .Append(ClassName)
-            .Append(".g.cs");
+        fileNameBuilder.Append("g.cs");
 
         return fileNameBuilder.ToString();
     }
 
     public readonly string GetSource() {
-        var indentLevel = 1;
-        var sourceBuilder = new StringBuilder("/* namespace ")
-            .Append(NamespaceName)
-            .AppendLine(" {");
+        var indentLevel = 0;
+        var sourceBuilder = new StringBuilder("/*");
 
-        foreach (var parentClassName in ParentClassNames) {
-            sourceBuilder
-                .Append(new string('\t', indentLevel++))
-                .Append("partial class ")
-                .Append(parentClassName)
-                .AppendLine(" {");
+        foreach (var methodOwnerData in MethodOwnerData) {
+            methodOwnerData.WriteStart(sourceBuilder, ref indentLevel);
         }
 
         sourceBuilder
-            .Append(new string('\t', indentLevel++))
-            .Append("partial class ")
-            .Append(ClassName)
-            .AppendLine("{")
             .Append(new string('\t', indentLevel))
             .Append(string.Join(" ", MethodModifiers))
             .Append(" string ")
             .Append(MethodName)
-            .AppendLine("() => \"Ping!\";")
-            .Append(new string('\t', --indentLevel))
-            .AppendLine("}");
+            .AppendLine("() => \"Ping!\";");
 
-        foreach (var parentClassName in ParentClassNames) {
-            sourceBuilder
-                .Append(new string('\t', --indentLevel))
-                .AppendLine("}");
+        foreach (var methodOwnerData in MethodOwnerData.AsEnumerable().Reverse()) {
+            methodOwnerData.WriteEnd(sourceBuilder, ref indentLevel);
         }
 
-        sourceBuilder.AppendLine("} */");
+        sourceBuilder.AppendLine("*/");
 
         return sourceBuilder.ToString();
     }
