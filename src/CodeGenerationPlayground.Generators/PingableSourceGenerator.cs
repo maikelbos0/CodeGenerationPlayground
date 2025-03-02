@@ -14,7 +14,7 @@ public class PingableSourceGenerator : IIncrementalGenerator {
             .ForAttributeWithMetadataName(
                 "CodeGenerationPlayground.PingableAttribute",
                 static (syntaxNode, _) => syntaxNode is MethodDeclarationSyntax methodDeclarationSyntax,
-                static (context, _) => GetPingableData(context.TargetNode));
+                static (context, _) => GetMethodData(context.TargetNode));
 
         context.RegisterSourceOutput(methodsToGenerate, static (context, source) => {
             context.AddSource(
@@ -25,14 +25,13 @@ public class PingableSourceGenerator : IIncrementalGenerator {
 
     }
 
-    private static PingableData GetPingableData(SyntaxNode node) {
-        // TODO take into account class / method access modifiers as needed
+    private static MethodData GetMethodData(SyntaxNode node) {
         // TODO take into account structs?
         var methodDeclarationSyntax = (MethodDeclarationSyntax)node;
         var classDeclarationSyntax = (methodDeclarationSyntax.Parent as ClassDeclarationSyntax);
                 
         var className = classDeclarationSyntax?.Identifier.Text;
-
+        
         var parent = classDeclarationSyntax?.Parent;
         var parentClassNames = new List<string>();
         string? namespaceName = null;
@@ -54,9 +53,10 @@ public class PingableSourceGenerator : IIncrementalGenerator {
             parent = parent.Parent;
         }
 
+        var methodModifiers = methodDeclarationSyntax.Modifiers.Select(modifier => modifier.Text).ToList();
         var methodName = methodDeclarationSyntax.Identifier.Text;
 
-        return new PingableData(namespaceName, parentClassNames, className, methodName);
+        return new MethodData(namespaceName, parentClassNames, className, methodModifiers, methodName);
     }
 
     // TODO add filters for these (and see if we can create errors):

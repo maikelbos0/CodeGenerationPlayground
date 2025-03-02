@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace CodeGenerationPlayground.Generators;
 
-public record struct PingableData(string? NamespaceName, List<string> ParentClassNames, string? ClassName, string MethodName) {
+// TODO make sure this all is comparable
+public record struct MethodData(string? NamespaceName, List<string> ParentClassNames, string? ClassName, List<string> MethodModifiers, string MethodName) {
     public readonly string GetFileName() {
         var fileNameBuilder = new StringBuilder(NamespaceName);
 
@@ -41,7 +43,8 @@ public record struct PingableData(string? NamespaceName, List<string> ParentClas
             .Append(ClassName)
             .AppendLine("{")
             .Append(new string('\t', indentLevel))
-            .Append("public string ")
+            .Append(string.Join(" ", MethodModifiers))
+            .Append(" string ")
             .Append(MethodName)
             .AppendLine("() => \"Ping!\";")
             .Append(new string('\t', --indentLevel))
