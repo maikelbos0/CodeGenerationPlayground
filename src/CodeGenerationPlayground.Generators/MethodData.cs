@@ -1,9 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
-using System.Text;
+﻿using System.Text;
 
 namespace CodeGenerationPlayground.Generators;
 
-public record struct MethodData(MethodOwnerData Owner, string MethodModifiers, string MethodName, LocationData Location) {
+public record struct MethodData(MethodOwnerData Owner, string MethodModifiers, string MethodName) {
     public readonly string WriteSource(StringBuilder sourceBuilder, ref int indentLevel) {
         Owner.WriteStart(sourceBuilder, ref indentLevel);
 

@@ -56,9 +56,8 @@ public class PingableSourceGenerator : IIncrementalGenerator {
 
         var methodModifiers = string.Join(" ", methodDeclarationSyntax.Modifiers.Select(modifier => modifier.Text));
         var methodName = methodDeclarationSyntax.Identifier.Text;
-        var location = new LocationData(methodDeclarationSyntax.SyntaxTree.FilePath, methodDeclarationSyntax.Identifier.Span);
 
-        return new MethodData(methodOwner!.Value, methodModifiers, methodName, location);
+        return new MethodData(methodOwner!.Value, methodModifiers, methodName);
     }
 
     // TODO also add analyzer for each filter
