@@ -1,0 +1,5 @@
+﻿namespace CodeGenerationPlayground.Generators.Tests {{
+	partial class MethodDataTests {{
+		public string WriteSource() => "Ping!";
+	}
+}

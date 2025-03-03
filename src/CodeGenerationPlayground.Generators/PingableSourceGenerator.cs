@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace CodeGenerationPlayground.Generators;
 
@@ -17,12 +18,17 @@ public class PingableSourceGenerator : IIncrementalGenerator {
                 static (context, _) => GetMethodData(context.TargetNode));
 
         context.RegisterSourceOutput(methodsToGenerate, static (context, source) => {
+            var sourceBuilder = new StringBuilder("/*");
+            var indentLevel = 0;
+
+            source.WriteSource(sourceBuilder, ref indentLevel);
+            sourceBuilder.Append("*/");
+
             context.AddSource(
                 source.Owner.GetFileName(), 
-                source.GetSource()
+                sourceBuilder.ToString()
             );
         });
-
     }
 
     private static MethodData GetMethodData(SyntaxNode node) {

@@ -3,10 +3,7 @@
 namespace CodeGenerationPlayground.Generators;
 
 public record struct MethodData(MethodOwnerData Owner, string MethodModifiers, string MethodName) {
-    public readonly string GetSource() {
-        var indentLevel = 0;
-        var sourceBuilder = new StringBuilder("/*");
-
+    public readonly string WriteSource(StringBuilder sourceBuilder, ref int indentLevel) {
         Owner.WriteStart(sourceBuilder, ref indentLevel);
 
         sourceBuilder
@@ -17,8 +14,6 @@ public record struct MethodData(MethodOwnerData Owner, string MethodModifiers, s
             .AppendLine("() => \"Ping!\";");
 
         Owner.WriteEnd(sourceBuilder, ref indentLevel);
-
-        sourceBuilder.AppendLine("*/");
 
         return sourceBuilder.ToString();
     }

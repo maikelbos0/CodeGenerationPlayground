@@ -1,4 +1,7 @@
-﻿using Xunit;
+﻿using System.Text;
+using System.Threading.Tasks;
+using VerifyXunit;
+using Xunit;
 
 namespace CodeGenerationPlayground.Generators.Tests;
 
@@ -22,5 +25,29 @@ public class MethodOwnerDataTests {
         var subject = new MethodOwnerData(new MethodOwnerData(null, "CodeGenerationPlayground.Generators.Tests", MethodOwnerType.Namespace), "MethodOwnerDataTests", MethodOwnerType.Class);
 
         Assert.Equal("CodeGenerationPlayground.Generators.Tests.MethodOwnerDataTests.g.cs", subject.GetFileName());
+    }
+
+    [Fact]
+    public Task WriteStart() {
+        var indentLevel = 0;
+        var sourceBuilder = new StringBuilder();
+
+        var subject = new MethodOwnerData(new MethodOwnerData(null, "CodeGenerationPlayground.Generators.Tests", MethodOwnerType.Namespace), "MethodOwnerDataTests", MethodOwnerType.Class);
+
+        subject.WriteStart(sourceBuilder, ref indentLevel);
+
+        return Verifier.Verify(sourceBuilder.ToString());
+    }
+
+    [Fact]
+    public Task WriteEnd() {
+        var indentLevel = 2;
+        var sourceBuilder = new StringBuilder();
+
+        var subject = new MethodOwnerData(new MethodOwnerData(null, "CodeGenerationPlayground.Generators.Tests", MethodOwnerType.Namespace), "MethodOwnerDataTests", MethodOwnerType.Class);
+
+        subject.WriteEnd(sourceBuilder, ref indentLevel);
+
+        return Verifier.Verify(sourceBuilder.ToString());
     }
 }
