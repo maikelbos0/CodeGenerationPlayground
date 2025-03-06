@@ -37,9 +37,21 @@ public class PingableSourceGenerator : IIncrementalGenerator {
             return null;
         }
 
+        var ancestors = new Stack<SyntaxNode>();
         var parent = methodDeclarationSyntax.Parent;
 
         while (parent != null) {
+            ancestors.Push(parent);
+            parent = parent.Parent;
+        }
+
+        MethodOwnerData? methodOwner = null;
+
+        while (ancestors.Count > 0) {
+            parent = ancestors.Pop();
+
+            // TODO support record?
+            //https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.csharp.syntax.typedeclarationsyntax?view=roslyn-dotnet-4.9.0
             if (parent is ClassDeclarationSyntax classDeclarationSyntax) {
                 methodOwner = new MethodOwnerData(methodOwner, classDeclarationSyntax.Identifier.Text, MethodOwnerType.Class);
             }
@@ -50,12 +62,8 @@ public class PingableSourceGenerator : IIncrementalGenerator {
                 methodOwner = new MethodOwnerData(methodOwner, namespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace);
             }
             else if (parent is FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclarationSyntax) {
-                // File scoped namespaces can be handled the same as normal namespaces, but we know for sure there will not be any parents above it so we can exit the loop
                 methodOwner = new MethodOwnerData(methodOwner, fileScopedNamespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace);
-                break;
             }
-
-            parent = parent.Parent;
         }
 
         var methodModifiers = string.Join(" ", methodDeclarationSyntax.Modifiers.Select(modifier => modifier.Text));
@@ -66,8 +74,7 @@ public class PingableSourceGenerator : IIncrementalGenerator {
 
     // TODO also add analyzer for each filter
     // TODO add filter for null owner
-    // TODO add filters for these (and see if we can create errors):
-    // && methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))
-    // && type
+    // TODO add filter for missing partial // && methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))
+    // TODO add filter for not string
         // TODO group
 }
