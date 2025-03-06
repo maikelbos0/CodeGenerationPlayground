@@ -72,9 +72,8 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         return new MethodData(methodOwner!.Value, methodModifiers, methodName);
     }
 
-    // TODO also add analyzer for each filter
-    // TODO add filter for null owner
+    // TODO add add analyzer for null owner
     // TODO add filter for missing partial // && methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))
     // TODO add filter for not string
-        // TODO group
+    // TODO group
 }
