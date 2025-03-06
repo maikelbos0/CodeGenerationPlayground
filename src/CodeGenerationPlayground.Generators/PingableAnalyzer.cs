@@ -18,7 +18,19 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(methodMissingPartialModifierDescriptor);
+    private static readonly DiagnosticDescriptor methodWrongReturnTypeDescriptor = new(
+        id: "CGP002",
+        title: "Method does not return 'string'",
+        messageFormat: "Method '{0}' needs to return 'string'",
+        category: "Analyzer",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        methodMissingPartialModifierDescriptor,
+        methodWrongReturnTypeDescriptor
+    );
 
     public override void Initialize(AnalysisContext context) {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -40,6 +52,15 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
         if (!methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))) {
             var location = methodDeclarationSyntax.Identifier.GetLocation();
             var diagnostic = Diagnostic.Create(methodMissingPartialModifierDescriptor, location, methodDeclarationSyntax.Identifier.Text);
+
+            context.ReportDiagnostic(diagnostic);
+        }
+
+        var methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDeclarationSyntax);
+
+        if (methodSymbol != null && methodSymbol.ReturnType.SpecialType != SpecialType.System_String) {
+            var location = methodDeclarationSyntax.Identifier.GetLocation();
+            var diagnostic = Diagnostic.Create(methodWrongReturnTypeDescriptor, location, methodDeclarationSyntax.Identifier.Text);
 
             context.ReportDiagnostic(diagnostic);
         }

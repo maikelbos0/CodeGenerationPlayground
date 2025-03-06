@@ -5,3 +5,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
 CGP001  | Analyzer | Warning  | 
+CGP002  | Analyzer | Warning  | 
