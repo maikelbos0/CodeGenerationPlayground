@@ -9,8 +9,6 @@ namespace CodeGenerationPlayground.Generators;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class PingableAnalyzer : DiagnosticAnalyzer {
-    //private static SymbolDisplayFormat fullyQualifiedFormat = new()
-
     private static readonly DiagnosticDescriptor methodMissingPartialModifierDescriptor = new(
         id: "CGP001",
         title: "Method is missing 'partial' modifier",
