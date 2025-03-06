@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -12,26 +13,29 @@ public class PingableSourceGenerator : IIncrementalGenerator {
             .ForAttributeWithMetadataName(
                 PingableConstants.FullyQualifiedAttributeName,
                 static (syntaxNode, _) => syntaxNode is MethodDeclarationSyntax methodDeclarationSyntax,
-                static (context, _) => GetMethodData(context.TargetNode));
+                static (context, _) => GetMethodData(context.TargetNode))
+            .Where(methodData => methodData != null)
+            .Select((methodData, _) => methodData!.Value);
 
 
-        context.RegisterSourceOutput(methodsToGenerate, static (context, source) => {
+        context.RegisterSourceOutput(methodsToGenerate, static (context, methodData) => {
             var sourceBuilder = new StringBuilder("/*");
             var indentLevel = 0;
 
-            source.WriteSource(sourceBuilder, ref indentLevel);
+            methodData.WriteSource(sourceBuilder, ref indentLevel);
             sourceBuilder.Append("*/");
 
             context.AddSource(
-                source.Owner.GetFileName(), 
+                methodData.Owner.GetFileName(),
                 sourceBuilder.ToString()
             );
         });
     }
 
-    private static MethodData GetMethodData(SyntaxNode node) {
-        var methodDeclarationSyntax = (MethodDeclarationSyntax)node;
-        MethodOwnerData? methodOwner = null;
+    private static MethodData? GetMethodData(SyntaxNode node) {
+        if (node is not MethodDeclarationSyntax methodDeclarationSyntax || methodDeclarationSyntax.Parent is not TypeDeclarationSyntax) {
+            return null;
+        }
 
         var parent = methodDeclarationSyntax.Parent;
 
