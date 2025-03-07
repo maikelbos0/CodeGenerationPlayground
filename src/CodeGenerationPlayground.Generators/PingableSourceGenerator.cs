@@ -56,13 +56,14 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         while (ancestors.Count > 0) {
             parent = ancestors.Pop();
 
-            // TODO support record?
-            //https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.csharp.syntax.typedeclarationsyntax?view=roslyn-dotnet-4.9.0
             if (parent is ClassDeclarationSyntax classDeclarationSyntax) {
                 methodOwner = new MethodOwnerData(methodOwner, classDeclarationSyntax.Identifier.Text, MethodOwnerType.Class);
             }
             else if (parent is StructDeclarationSyntax structDeclarationSyntax) {
                 methodOwner = new MethodOwnerData(methodOwner, structDeclarationSyntax.Identifier.Text, MethodOwnerType.Struct);
+            }
+            else if (parent is RecordDeclarationSyntax recordDeclarationSyntax) {
+                methodOwner = new MethodOwnerData(methodOwner, recordDeclarationSyntax.Identifier.Text, MethodOwnerType.Record);
             }
             else if (parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax) {
                 methodOwner = new MethodOwnerData(methodOwner, namespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace);

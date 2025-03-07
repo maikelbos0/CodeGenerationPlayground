@@ -8,6 +8,7 @@ public record struct MethodOwnerData(IMethodOwnerData? Owner, string Name, Metho
         MethodOwnerType.Namespace => "namespace",
         MethodOwnerType.Class => "partial class",
         MethodOwnerType.Struct => "partial struct",
+        MethodOwnerType.Record => "partial record",
         _ => throw new NotImplementedException()
     };
 

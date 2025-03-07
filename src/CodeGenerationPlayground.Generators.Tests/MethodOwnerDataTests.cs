@@ -7,6 +7,17 @@ namespace CodeGenerationPlayground.Generators.Tests;
 
 public class MethodOwnerDataTests {
     [Theory]
+    [InlineData(MethodOwnerType.Namespace, "namespace")]
+    [InlineData(MethodOwnerType.Class, "partial class")]
+    [InlineData(MethodOwnerType.Struct, "partial struct")]
+    [InlineData(MethodOwnerType.Record, "partial record")]
+    public void TypeName(MethodOwnerType type, string expectedTypeName) {
+        var subject = new MethodOwnerData(null, "Name", type);
+
+        Assert.Equal(expectedTypeName, subject.TypeName);
+    }
+
+    [Theory]
     [InlineData("Owner", "Name", MethodOwnerType.Namespace, "Owner", "Name", MethodOwnerType.Namespace, true)]
     [InlineData("Owner", "Name", MethodOwnerType.Class, "Owner", "Name", MethodOwnerType.Class, true)]
     [InlineData("Owner", "Name", MethodOwnerType.Struct, "Owner", "Name", MethodOwnerType.Struct, true)]
