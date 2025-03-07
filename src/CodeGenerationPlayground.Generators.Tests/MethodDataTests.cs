@@ -19,13 +19,6 @@ public class MethodDataTests {
     }
 
     [Fact]
-    public void GetFileName() {
-        var subject = new MethodData(new MethodOwnerData(new MethodOwnerData(null, "CodeGenerationPlayground.Generators.Tests", MethodOwnerType.Namespace), "MethodDataTests", MethodOwnerType.Class), "partial", "Name");
-
-        Assert.Equal("CodeGenerationPlayground.Generators.Tests.MethodDataTests.Name.g.cs", subject.GetFileName());
-    }
-
-    [Fact]
     public Task WriteSource() {
         var indentLevel = 0;
         var sourceBuilder = new StringBuilder();

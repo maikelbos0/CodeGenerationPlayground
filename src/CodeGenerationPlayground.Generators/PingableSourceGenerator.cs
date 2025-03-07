@@ -9,23 +9,30 @@ namespace CodeGenerationPlayground.Generators;
 [Generator(LanguageNames.CSharp)]
 public class PingableSourceGenerator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
-        var methodData = context.SyntaxProvider
+        var typeData = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 PingableConstants.FullyQualifiedAttributeName,
                 static (syntaxNode, _) => syntaxNode is MethodDeclarationSyntax methodDeclarationSyntax,
                 static (context, _) => GetMethodData(context.TargetNode))
             .Where(methodData => methodData != null)
-            .Select((methodData, _) => methodData!.Value);
+            .Select((methodData, _) => methodData!.Value)
+            .Collect()
+            .SelectMany((collection, _) => collection.GroupBy(methodData => methodData.Owner));
 
-        context.RegisterSourceOutput(methodData, static (context, methodData) => {
+        context.RegisterSourceOutput(typeData, static (context, typeData) => {
             var sourceBuilder = new StringBuilder("/*");
             var indentLevel = 0;
 
-            methodData.WriteSource(sourceBuilder, ref indentLevel);
+            typeData.Key.WriteStart(sourceBuilder, ref indentLevel);
+            foreach (var methodData in typeData) {
+                methodData.WriteSource(sourceBuilder, ref indentLevel);
+            }
+            typeData.Key.WriteEnd(sourceBuilder, ref indentLevel);
+
             sourceBuilder.Append("*/");
 
             context.AddSource(
-                methodData.GetFileName(),
+                typeData.Key.GetFileName(),
                 sourceBuilder.ToString()
             );
         });

@@ -21,6 +21,13 @@ public class MethodOwnerDataTests {
     }
 
     [Fact]
+    public void GetFileName() {
+        var subject = new MethodOwnerData(new MethodOwnerData(null, "CodeGenerationPlayground.Generators.Tests", MethodOwnerType.Namespace), "MethodOwnerDataTests", MethodOwnerType.Class);
+
+        Assert.Equal("CodeGenerationPlayground.Generators.Tests.MethodOwnerDataTests.g.cs", subject.GetFileName());
+    }
+
+    [Fact]
     public Task WriteStart() {
         var indentLevel = 0;
         var sourceBuilder = new StringBuilder();

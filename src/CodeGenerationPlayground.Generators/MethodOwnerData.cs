@@ -11,6 +11,23 @@ public record struct MethodOwnerData(IMethodOwnerData? Owner, string Name, Metho
         _ => throw new NotImplementedException()
     };
 
+    public readonly string GetFileName() {
+        var fileNameBuilder = new StringBuilder();
+        IMethodOwnerData? owner = this;
+
+        while (owner != null) {
+            fileNameBuilder
+                .Insert(0, ".")
+                .Insert(0, owner.Name);
+
+            owner = owner.Owner;
+        }
+
+        fileNameBuilder.Append("g.cs");
+
+        return fileNameBuilder.ToString();
+    }
+
     public readonly void WriteStart(StringBuilder sourceBuilder, ref int indentLevel) {
         Owner?.WriteStart(sourceBuilder, ref indentLevel);
 
