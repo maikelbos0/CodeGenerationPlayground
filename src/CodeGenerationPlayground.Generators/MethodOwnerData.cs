@@ -35,7 +35,7 @@ public record struct MethodOwnerData(IMethodOwnerData? Owner, string Name, Metho
             .Append(TypeName)
             .Append(" ")
             .Append(Name)
-            .AppendLine(" {{");
+            .AppendLine(" {");
     }
 
     public readonly void WriteEnd(StringBuilder sourceBuilder, ref int indentLevel) {

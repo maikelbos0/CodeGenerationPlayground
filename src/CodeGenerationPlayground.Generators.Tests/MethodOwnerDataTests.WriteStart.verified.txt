@@ -1,2 +1,2 @@
-﻿namespace CodeGenerationPlayground.Generators.Tests {{
-	partial class MethodOwnerDataTests {{
+﻿namespace CodeGenerationPlayground.Generators.Tests {
+	partial class MethodOwnerDataTests {
