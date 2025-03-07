@@ -12,6 +12,7 @@ public class MethodOwnerDataTests {
     [InlineData(MethodOwnerType.Struct, "partial struct")]
     [InlineData(MethodOwnerType.RecordClass, "partial record class")]
     [InlineData(MethodOwnerType.RecordStruct, "partial record struct")]
+    [InlineData(MethodOwnerType.Interface, "partial interface")]
     public void TypeName(MethodOwnerType type, string expectedTypeName) {
         var subject = new MethodOwnerData(null, "Name", type);
 

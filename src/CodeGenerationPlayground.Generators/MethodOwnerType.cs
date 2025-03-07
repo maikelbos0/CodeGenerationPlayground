@@ -5,5 +5,6 @@ public enum MethodOwnerType {
     Class,
     Struct,
     RecordClass,
-    RecordStruct
+    RecordStruct,
+    Interface
 }

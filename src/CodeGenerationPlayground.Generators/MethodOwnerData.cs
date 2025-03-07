@@ -10,6 +10,7 @@ public record struct MethodOwnerData(IMethodOwnerData? Owner, string Name, Metho
         MethodOwnerType.Struct => "partial struct",
         MethodOwnerType.RecordClass => "partial record class",
         MethodOwnerType.RecordStruct => "partial record struct",
+        MethodOwnerType.Interface => "partial interface",
         _ => throw new NotImplementedException()
     };
 

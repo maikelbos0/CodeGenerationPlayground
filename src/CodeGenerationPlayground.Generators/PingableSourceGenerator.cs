@@ -69,6 +69,9 @@ public class PingableSourceGenerator : IIncrementalGenerator {
             else if (parent is RecordDeclarationSyntax recordStructDeclarationSyntax) {
                 methodOwner = new MethodOwnerData(methodOwner, recordStructDeclarationSyntax.Identifier.Text, MethodOwnerType.RecordClass);
             }
+            else if (parent is InterfaceDeclarationSyntax interfaceDeclarationSyntax) {
+                methodOwner = new MethodOwnerData(methodOwner, interfaceDeclarationSyntax.Identifier.Text, MethodOwnerType.Interface);
+            }
             else if (parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax) {
                 methodOwner = new MethodOwnerData(methodOwner, namespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace);
             }
