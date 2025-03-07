@@ -12,7 +12,7 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor methodMissingPartialModifierDescriptor = new(
         id: "CGP001",
         title: "Method is missing 'partial' modifier",
-        messageFormat: "Method '{0}' is missing the required modifier 'partial'",
+        messageFormat: "Method '{0}' is missing required modifier 'partial'",
         category: "Analyzer",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true
@@ -21,7 +21,7 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor methodWrongReturnTypeDescriptor = new(
         id: "CGP002",
         title: "Method does not return 'string'",
-        messageFormat: "Method '{0}' needs to return 'string'",
+        messageFormat: "Method '{0}' needs to have return type 'string'",
         category: "Analyzer",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true

@@ -10,7 +10,6 @@ public interface IMethodOwnerData {
     void Deconstruct(out IMethodOwnerData? Owner, out string Name, out MethodOwnerType Type);
     bool Equals(MethodOwnerData other);
     bool Equals(object obj);
-    string GetFileName();
     int GetHashCode();
     string ToString();
     void WriteEnd(StringBuilder sourceBuilder, ref int indentLevel);

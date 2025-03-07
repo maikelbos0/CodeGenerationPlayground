@@ -9,7 +9,7 @@ namespace CodeGenerationPlayground.Generators;
 [Generator(LanguageNames.CSharp)]
 public class PingableSourceGenerator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
-        var methodsToGenerate = context.SyntaxProvider
+        var methodData = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 PingableConstants.FullyQualifiedAttributeName,
                 static (syntaxNode, _) => syntaxNode is MethodDeclarationSyntax methodDeclarationSyntax,
@@ -17,8 +17,7 @@ public class PingableSourceGenerator : IIncrementalGenerator {
             .Where(methodData => methodData != null)
             .Select((methodData, _) => methodData!.Value);
 
-
-        context.RegisterSourceOutput(methodsToGenerate, static (context, methodData) => {
+        context.RegisterSourceOutput(methodData, static (context, methodData) => {
             var sourceBuilder = new StringBuilder("/*");
             var indentLevel = 0;
 
@@ -26,7 +25,7 @@ public class PingableSourceGenerator : IIncrementalGenerator {
             sourceBuilder.Append("*/");
 
             context.AddSource(
-                methodData.Owner.GetFileName(),
+                methodData.GetFileName(),
                 sourceBuilder.ToString()
             );
         });
@@ -73,7 +72,7 @@ public class PingableSourceGenerator : IIncrementalGenerator {
     }
 
     // TODO add add analyzer for null owner
+    // TODO add analyzer for parameter count > 0
+    // TODO add filter for parameter count > 0
     // TODO add filter for missing partial // && methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))
-    // TODO add filter for not string
-    // TODO group
 }

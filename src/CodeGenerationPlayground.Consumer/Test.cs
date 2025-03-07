@@ -3,6 +3,9 @@
 public partial class Parent {
     public partial class Test {
         [Pingable]
-        public int Ping() => 0;
+        public string Ping() => "";
+
+        [Pingable]
+        public string Pong() => "";
     }
 }
