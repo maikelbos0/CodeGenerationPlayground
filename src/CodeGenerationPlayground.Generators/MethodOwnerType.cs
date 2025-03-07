@@ -4,5 +4,6 @@ public enum MethodOwnerType {
     Namespace,
     Class,
     Struct,
-    Record
+    RecordClass,
+    RecordStruct
 }

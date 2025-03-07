@@ -10,7 +10,8 @@ public class MethodOwnerDataTests {
     [InlineData(MethodOwnerType.Namespace, "namespace")]
     [InlineData(MethodOwnerType.Class, "partial class")]
     [InlineData(MethodOwnerType.Struct, "partial struct")]
-    [InlineData(MethodOwnerType.Record, "partial record")]
+    [InlineData(MethodOwnerType.RecordClass, "partial record class")]
+    [InlineData(MethodOwnerType.RecordStruct, "partial record struct")]
     public void TypeName(MethodOwnerType type, string expectedTypeName) {
         var subject = new MethodOwnerData(null, "Name", type);
 

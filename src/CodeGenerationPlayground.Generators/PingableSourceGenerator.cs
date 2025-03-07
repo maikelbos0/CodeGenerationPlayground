@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,8 +63,11 @@ public class PingableSourceGenerator : IIncrementalGenerator {
             else if (parent is StructDeclarationSyntax structDeclarationSyntax) {
                 methodOwner = new MethodOwnerData(methodOwner, structDeclarationSyntax.Identifier.Text, MethodOwnerType.Struct);
             }
-            else if (parent is RecordDeclarationSyntax recordDeclarationSyntax) {
-                methodOwner = new MethodOwnerData(methodOwner, recordDeclarationSyntax.Identifier.Text, MethodOwnerType.Record);
+            else if (parent is RecordDeclarationSyntax recordClassDeclarationSyntax && recordClassDeclarationSyntax.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)) {
+                methodOwner = new MethodOwnerData(methodOwner, recordClassDeclarationSyntax.Identifier.Text, MethodOwnerType.RecordStruct);
+            }
+            else if (parent is RecordDeclarationSyntax recordStructDeclarationSyntax) {
+                methodOwner = new MethodOwnerData(methodOwner, recordStructDeclarationSyntax.Identifier.Text, MethodOwnerType.RecordClass);
             }
             else if (parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax) {
                 methodOwner = new MethodOwnerData(methodOwner, namespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace);

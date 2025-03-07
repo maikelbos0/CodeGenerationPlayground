@@ -17,7 +17,7 @@ public partial class Parent {
         public string Pong() => "";
     }
 
-    public partial record Record {
+    public partial record RecordClass {
         [Pingable]
         public string Ping() => "";
 
@@ -33,4 +33,3 @@ public partial class Parent {
         public string Pong() => "";
     }
 }
-
