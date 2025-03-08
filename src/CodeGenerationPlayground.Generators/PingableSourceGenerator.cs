@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace CodeGenerationPlayground.Generators;
 
@@ -14,7 +15,7 @@ public class PingableSourceGenerator : IIncrementalGenerator {
             .ForAttributeWithMetadataName(
                 PingableConstants.FullyQualifiedAttributeName,
                 static (syntaxNode, _) => ShouldGeneratePingable(syntaxNode),
-                static (context, _) => GetMethodData(context.TargetNode))
+                static (context, cancellationToken) => GetMethodData(context.TargetNode, cancellationToken))
             .Collect()
             .SelectMany((collection, _) => collection.GroupBy(methodData => methodData.Owner));
 
@@ -41,12 +42,14 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         && methodDeclarationSyntax.ParameterList.Parameters.Count == 0
         && methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
 
-    private static MethodData GetMethodData(SyntaxNode syntaxNode) {
+    private static MethodData GetMethodData(SyntaxNode syntaxNode, CancellationToken cancellationToken) {
         var methodDeclarationSyntax = (MethodDeclarationSyntax)syntaxNode;
         var ancestors = new Stack<SyntaxNode>();
         var parent = methodDeclarationSyntax.Parent;
 
         while (parent != null) {
+            cancellationToken.ThrowIfCancellationRequested();
+
             ancestors.Push(parent);
             parent = parent.Parent;
         }
@@ -54,6 +57,8 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         MethodOwnerData? methodOwner = null;
 
         while (ancestors.Count > 0) {
+            cancellationToken.ThrowIfCancellationRequested();
+
             parent = ancestors.Pop();
 
             if (parent is ClassDeclarationSyntax classDeclarationSyntax) {
