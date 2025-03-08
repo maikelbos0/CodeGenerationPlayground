@@ -18,7 +18,7 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
-    private static readonly DiagnosticDescriptor methodWrongReturnTypeDescriptor = new(
+    private static readonly DiagnosticDescriptor methodDoesNotReturnStringDescriptor = new(
         id: "CGP002",
         title: "Method does not return 'string'",
         messageFormat: "Method '{0}' needs to have return type 'string'",
@@ -27,9 +27,19 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
+    private static readonly DiagnosticDescriptor methodNotOwnedByTypeDescriptor = new(
+        id: "CGP003",
+        title: "Method is not owned by a type",
+        messageFormat: "Method '{0}' needs to be part of a class, struct, record or interface",
+        category: "Analyzer",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
         methodMissingPartialModifierDescriptor,
-        methodWrongReturnTypeDescriptor
+        methodDoesNotReturnStringDescriptor,
+        methodNotOwnedByTypeDescriptor
     );
 
     public override void Initialize(AnalysisContext context) {
@@ -49,22 +59,27 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
             return;
         }
 
-        if (!methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))) {
-            var location = methodDeclarationSyntax.Identifier.GetLocation();
-            var diagnostic = Diagnostic.Create(methodMissingPartialModifierDescriptor, location, methodDeclarationSyntax.Identifier.Text);
+        if (methodDeclarationSyntax.Parent is not TypeDeclarationSyntax) {
+            context.ReportDiagnostic(CreateDiagnostic(methodNotOwnedByTypeDescriptor, methodDeclarationSyntax));
+        }
 
-            context.ReportDiagnostic(diagnostic);
+        if (!methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))) {
+            context.ReportDiagnostic(CreateDiagnostic(methodMissingPartialModifierDescriptor, methodDeclarationSyntax));
         }
 
         var methodSymbol = context.SemanticModel.GetDeclaredSymbol(methodDeclarationSyntax);
 
         if (methodSymbol != null && methodSymbol.ReturnType.SpecialType != SpecialType.System_String) {
-            var location = methodDeclarationSyntax.Identifier.GetLocation();
-            var diagnostic = Diagnostic.Create(methodWrongReturnTypeDescriptor, location, methodDeclarationSyntax.Identifier.Text);
-
-            context.ReportDiagnostic(diagnostic);
+            context.ReportDiagnostic(CreateDiagnostic(methodDoesNotReturnStringDescriptor, methodDeclarationSyntax));
         }
     }
+
+    private static Diagnostic CreateDiagnostic(DiagnosticDescriptor diagnosticDescriptor, MethodDeclarationSyntax methodDeclarationSyntax)
+        => Diagnostic.Create(
+            diagnosticDescriptor,
+            methodDeclarationSyntax.GetLocation(),
+            methodDeclarationSyntax.Identifier.Text
+        );
 
     private bool IsPingableAttribute(SyntaxNodeAnalysisContext context, AttributeSyntax attributeSyntax) {
         if (context.SemanticModel.GetSymbolInfo(attributeSyntax, context.CancellationToken).Symbol is IMethodSymbol methodSymbol) {
