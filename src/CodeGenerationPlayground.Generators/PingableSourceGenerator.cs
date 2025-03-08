@@ -13,7 +13,7 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         var typeData = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 PingableConstants.FullyQualifiedAttributeName,
-                static (syntaxNode, _) => syntaxNode is MethodDeclarationSyntax methodDeclarationSyntax,
+                static (syntaxNode, _) => syntaxNode is MethodDeclarationSyntax methodDeclarationSyntax ,
                 static (context, _) => GetMethodData(context.TargetNode))
             .Where(methodData => methodData != null)
             .Select((methodData, _) => methodData!.Value)
@@ -21,7 +21,7 @@ public class PingableSourceGenerator : IIncrementalGenerator {
             .SelectMany((collection, _) => collection.GroupBy(methodData => methodData.Owner));
 
         context.RegisterSourceOutput(typeData, static (context, typeData) => {
-            var sourceBuilder = new StringBuilder("/*");
+            var sourceBuilder = new StringBuilder();
             var indentLevel = 0;
 
             typeData.Key.WriteStart(sourceBuilder, ref indentLevel);
@@ -29,8 +29,6 @@ public class PingableSourceGenerator : IIncrementalGenerator {
                 methodData.WriteSource(sourceBuilder, ref indentLevel);
             }
             typeData.Key.WriteEnd(sourceBuilder, ref indentLevel);
-
-            sourceBuilder.Append("*/");
 
             context.AddSource(
                 typeData.Key.GetFileName(),
@@ -40,7 +38,11 @@ public class PingableSourceGenerator : IIncrementalGenerator {
     }
 
     private static MethodData? GetMethodData(SyntaxNode node) {
-        if (node is not MethodDeclarationSyntax methodDeclarationSyntax || methodDeclarationSyntax.Parent is not TypeDeclarationSyntax) {
+        if (node is not MethodDeclarationSyntax methodDeclarationSyntax
+            || methodDeclarationSyntax.Parent is not TypeDeclarationSyntax
+            || methodDeclarationSyntax.ParameterList.Parameters.Count > 0
+            || !methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))) {
+            
             return null;
         }
 
@@ -85,9 +87,4 @@ public class PingableSourceGenerator : IIncrementalGenerator {
 
         return new MethodData(methodOwner!.Value, methodModifiers, methodName);
     }
-
-    // TODO add add analyzer for null owner
-    // TODO add analyzer for parameter count > 0
-    // TODO add filter for parameter count > 0
-    // TODO add filter for missing partial // && methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))
 }

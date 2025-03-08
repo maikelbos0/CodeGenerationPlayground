@@ -3,36 +3,36 @@
 public partial class Parent {
     public partial class Class {
         [Pingable]
-        public string Ping() => "";
+        public partial string Ping();
 
         [Pingable]
-        public string Pong() => "";
+        public partial string Pong();
 
         [Pingable]
-        public string Pong(int foo) => "";
+        public string Pang(int foo) => "";
     }
 
     public partial struct Struct {
         [Pingable]
-        public string Ping() => "";
+        public partial string Ping();
 
         [Pingable]
-        public string Pong() => "";
+        public partial string Pong();
     }
 
     public partial record RecordClass {
         [Pingable]
-        public string Ping() => "";
+        public partial string Ping();
 
         [Pingable]
-        public string Pong() => "";
+        public partial string Pong();
     }
 
     public partial record struct RecordStruct {
         [Pingable]
-        public string Ping() => "";
+        public partial string Ping();
 
         [Pingable]
-        public string Pong() => "";
+        public partial string Pong();
     }
 }

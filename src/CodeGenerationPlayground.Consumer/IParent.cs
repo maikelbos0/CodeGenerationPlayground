@@ -6,12 +6,12 @@ public partial interface IParent {
         public string Ping() => "";
 
         [Pingable]
-        public string Pong() => "";
+        public partial string Pong();
     }
 
     public partial interface ITest {
         [Pingable]
-        public string Ping() => "";
+        public partial string Ping();
 
         [Pingable]
         public string Pong() => "";
