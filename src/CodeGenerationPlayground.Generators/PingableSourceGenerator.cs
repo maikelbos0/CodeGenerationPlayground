@@ -13,10 +13,8 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         var typeData = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 PingableConstants.FullyQualifiedAttributeName,
-                static (syntaxNode, _) => syntaxNode is MethodDeclarationSyntax methodDeclarationSyntax ,
+                static (syntaxNode, _) => ShouldGeneratePingable(syntaxNode),
                 static (context, _) => GetMethodData(context.TargetNode))
-            .Where(methodData => methodData != null)
-            .Select((methodData, _) => methodData!.Value)
             .Collect()
             .SelectMany((collection, _) => collection.GroupBy(methodData => methodData.Owner));
 
@@ -37,15 +35,14 @@ public class PingableSourceGenerator : IIncrementalGenerator {
         });
     }
 
-    private static MethodData? GetMethodData(SyntaxNode node) {
-        if (node is not MethodDeclarationSyntax methodDeclarationSyntax
-            || methodDeclarationSyntax.Parent is not TypeDeclarationSyntax
-            || methodDeclarationSyntax.ParameterList.Parameters.Count > 0
-            || !methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword))) {
-            
-            return null;
-        }
+    private static bool ShouldGeneratePingable(SyntaxNode syntaxNode)
+        => syntaxNode is MethodDeclarationSyntax methodDeclarationSyntax
+        && methodDeclarationSyntax.Parent is TypeDeclarationSyntax
+        && methodDeclarationSyntax.ParameterList.Parameters.Count == 0
+        && methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
 
+    private static MethodData GetMethodData(SyntaxNode syntaxNode) {
+        var methodDeclarationSyntax = (MethodDeclarationSyntax)syntaxNode;
         var ancestors = new Stack<SyntaxNode>();
         var parent = methodDeclarationSyntax.Parent;
 
