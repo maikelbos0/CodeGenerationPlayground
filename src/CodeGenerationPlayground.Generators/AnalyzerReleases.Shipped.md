@@ -4,6 +4,7 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
-CGP001  | Analyzer | Warning  | 
-CGP002  | Analyzer | Warning  | 
-CGP003  | Analyzer | Warning  | 
+CGP001  | Analyzer | Warning  | PingableAnalyzer
+CGP002  | Analyzer | Warning  | PingableAnalyzer
+CGP003  | Analyzer | Warning  | PingableAnalyzer
+CGP004  | Analyzer | Warning  | PingableAnalyzer

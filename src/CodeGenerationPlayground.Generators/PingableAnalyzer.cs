@@ -36,10 +36,20 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
+    private static readonly DiagnosticDescriptor methodHasParametersDescriptor = new(
+        id: "CGP004",
+        title: "Method has parameters",
+        messageFormat: "Method '{0}' needs to be parameterless",
+        category: "Analyzer",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
         methodMissingPartialModifierDescriptor,
         methodDoesNotReturnStringDescriptor,
-        methodNotOwnedByTypeDescriptor
+        methodNotOwnedByTypeDescriptor,
+        methodHasParametersDescriptor
     );
 
     public override void Initialize(AnalysisContext context) {
@@ -71,6 +81,10 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
 
         if (methodSymbol != null && methodSymbol.ReturnType.SpecialType != SpecialType.System_String) {
             context.ReportDiagnostic(CreateDiagnostic(methodDoesNotReturnStringDescriptor, methodDeclarationSyntax));
+        }
+
+        if (methodDeclarationSyntax.ParameterList.Parameters.Count != 0) {
+            context.ReportDiagnostic(CreateDiagnostic(methodHasParametersDescriptor, methodDeclarationSyntax));
         }
     }
 

@@ -7,6 +7,9 @@ public partial class Parent {
 
         [Pingable]
         public string Pong() => "";
+
+        [Pingable]
+        public string Pong(int foo) => "";
     }
 
     public partial struct Struct {
