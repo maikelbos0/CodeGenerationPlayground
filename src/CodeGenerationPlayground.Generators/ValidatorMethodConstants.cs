@@ -8,7 +8,7 @@ public static class ValidatorMethodConstants {
 using System;
 
 namespace {nameof(CodeGenerationPlayground)} {{
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
     public partial class {AttributeName} : Attribute {{
         public string MethodName {{ get; }}
         
