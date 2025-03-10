@@ -97,7 +97,7 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
 
     private bool IsPingableAttribute(SyntaxNodeAnalysisContext context, AttributeSyntax attributeSyntax) {
         if (context.SemanticModel.GetSymbolInfo(attributeSyntax, context.CancellationToken).Symbol is IMethodSymbol methodSymbol) {
-            return methodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).EndsWith(PingableConstants.GlobalFullyQualifiedAttributeName);
+            return methodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == PingableConstants.GlobalFullyQualifiedAttributeName;
         }
 
         return false;
