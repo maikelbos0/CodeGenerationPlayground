@@ -3,8 +3,9 @@
 ### New Rules
 
 Rule ID | Category | Severity | Notes
---------|----------|----------|--------------------
+--------|----------|----------|-------------------------
 CGP001  | Analyzer | Warning  | PingableAnalyzer
 CGP002  | Analyzer | Warning  | PingableAnalyzer
 CGP003  | Analyzer | Warning  | PingableAnalyzer
 CGP004  | Analyzer | Warning  | PingableAnalyzer
+CGP005  | Analyzer | Warning  | ValidatorMethodAnalyzer
