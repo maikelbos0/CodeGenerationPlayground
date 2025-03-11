@@ -9,7 +9,7 @@ using System.Threading;
 namespace CodeGenerationPlayground.Generators;
 
 [Generator(LanguageNames.CSharp)]
-public class PingableSourceGenerator : IIncrementalGenerator {
+public class PingableGenerator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
         var typeData = context.SyntaxProvider
             .ForAttributeWithMetadataName(
