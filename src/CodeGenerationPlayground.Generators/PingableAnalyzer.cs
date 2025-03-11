@@ -45,7 +45,7 @@ public class PingableAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         methodMissingPartialModifierDescriptor,
         methodDoesNotReturnStringDescriptor,
         methodNotOwnedByTypeDescriptor,

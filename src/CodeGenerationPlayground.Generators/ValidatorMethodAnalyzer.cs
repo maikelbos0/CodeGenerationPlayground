@@ -10,7 +10,7 @@ namespace CodeGenerationPlayground.Generators;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
-    private static readonly DiagnosticDescriptor methodNotOwnedByTypeDescriptor = new(
+    private static readonly DiagnosticDescriptor propertyNotOwnedByTypeDescriptor = new(
         id: "CGP005",
         title: "Property is not owned by a type",
         messageFormat: "Property '{0}' needs to be part of a class, struct, record or interface",
@@ -20,6 +20,10 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
     );
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new System.NotImplementedException();
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
+        propertyNotOwnedByTypeDescriptor
+    );
 
     public override void Initialize(AnalysisContext context) {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
