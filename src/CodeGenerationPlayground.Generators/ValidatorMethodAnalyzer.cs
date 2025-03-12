@@ -19,10 +19,18 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new System.NotImplementedException();
+    private static readonly DiagnosticDescriptor missingValidatorMethodDescriptor = new(
+        id: "CGP006",
+        title: "Missing validator method",
+        messageFormat: "Property '{0}' needs to specify a validator method",
+        category: "Analyzer",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
-        propertyNotOwnedByTypeDescriptor
+        propertyNotOwnedByTypeDescriptor,
+        missingValidatorMethodDescriptor
     );
 
     public override void Initialize(AnalysisContext context) {
@@ -42,17 +50,25 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             return;
         }
 
-        if (propertyDeclarationSyntax.Parent is not TypeDeclarationSyntax) {
-            context.ReportDiagnostic(CreateDiagnostic(methodNotOwnedByTypeDescriptor, propertyDeclarationSyntax));
-        }
-    }
+        var propertySymbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclarationSyntax);
 
-    private static Diagnostic CreateDiagnostic(DiagnosticDescriptor diagnosticDescriptor, PropertyDeclarationSyntax propertyDeclarationSyntax)
-        => Diagnostic.Create(
-            diagnosticDescriptor,
-            propertyDeclarationSyntax.GetLocation(),
-            propertyDeclarationSyntax.Identifier.Text
-        );
+        if (propertySymbol == null) {
+            return;
+        }
+
+        if (propertyDeclarationSyntax.Parent is not TypeDeclarationSyntax) {
+            context.ReportDiagnostic(CreateDiagnostic(propertyNotOwnedByTypeDescriptor, propertyDeclarationSyntax, propertyDeclarationSyntax.Identifier.Text));
+        }
+
+        var methodName = GetValidatorMethodName(propertySymbol);
+
+        if (methodName == null) {
+            context.ReportDiagnostic(CreateDiagnostic(missingValidatorMethodDescriptor, propertyDeclarationSyntax, propertyDeclarationSyntax?.Identifier.Text));
+            return;
+        }
+
+
+    }
 
     private bool IsValidatorMethodAttribute(SyntaxNodeAnalysisContext context, AttributeSyntax attributeSyntax) {
         if (context.SemanticModel.GetSymbolInfo(attributeSyntax, context.CancellationToken).Symbol is IMethodSymbol methodSymbol) {
@@ -60,5 +76,24 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         }
 
         return false;
+    }
+
+    private static Diagnostic CreateDiagnostic(DiagnosticDescriptor diagnosticDescriptor, PropertyDeclarationSyntax propertyDeclarationSyntax, params object?[] messageArgs)
+        => Diagnostic.Create(
+            diagnosticDescriptor,
+            propertyDeclarationSyntax.GetLocation(),
+            messageArgs
+        );
+
+    private string? GetValidatorMethodName(IPropertySymbol propertySymbol) {
+        foreach (var attributeData in propertySymbol.GetAttributes()) {
+            if (attributeData.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == ValidatorMethodConstants.GlobalFullyQualifiedAttributeName
+                && attributeData.ConstructorArguments.Length > 0) {
+
+                return attributeData.ConstructorArguments[0].Value?.ToString();
+            }
+        }
+
+        return null;
     }
 }
