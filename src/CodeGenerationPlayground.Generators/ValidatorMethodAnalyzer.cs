@@ -2,9 +2,9 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 
 namespace CodeGenerationPlayground.Generators;
 
@@ -19,10 +19,19 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
-    private static readonly DiagnosticDescriptor missingValidatorMethodDescriptor = new(
+    private static readonly DiagnosticDescriptor nullValidatorMethodDescriptor = new(
         id: "CGP006",
-        title: "Missing validator method",
+        title: "Null validator method",
         messageFormat: "Property '{0}' needs to specify a validator method",
+        category: "Analyzer",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
+
+    private static readonly DiagnosticDescriptor validatorMethodNotFoundDescriptor = new(
+        id: "CGP007",
+        title: "Validator method not found",
+        messageFormat: "Can not find method specified by property '{0}'",
         category: "Analyzer",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true
@@ -30,7 +39,8 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         propertyNotOwnedByTypeDescriptor,
-        missingValidatorMethodDescriptor
+        nullValidatorMethodDescriptor,
+        validatorMethodNotFoundDescriptor
     );
 
     public override void Initialize(AnalysisContext context) {
@@ -56,18 +66,23 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             return;
         }
 
-        if (propertyDeclarationSyntax.Parent is not TypeDeclarationSyntax) {
-            context.ReportDiagnostic(CreateDiagnostic(propertyNotOwnedByTypeDescriptor, propertyDeclarationSyntax, propertyDeclarationSyntax.Identifier.Text));
+        if (propertyDeclarationSyntax.Parent is not TypeDeclarationSyntax typeDeclarationSyntax) {
+            context.ReportDiagnostic(CreateDiagnostic(propertyNotOwnedByTypeDescriptor, propertyDeclarationSyntax));
+            return;
         }
 
         var methodName = GetValidatorMethodName(propertySymbol);
 
         if (methodName == null) {
-            context.ReportDiagnostic(CreateDiagnostic(missingValidatorMethodDescriptor, propertyDeclarationSyntax, propertyDeclarationSyntax?.Identifier.Text));
+            context.ReportDiagnostic(CreateDiagnostic(nullValidatorMethodDescriptor, propertyDeclarationSyntax));
             return;
         }
 
+        var candidateMethodDeclarations = GetCandidateMethodDeclarations(typeDeclarationSyntax, methodName);
 
+        if (candidateMethodDeclarations.Count == 0) {
+            context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax));
+        }
     }
 
     private bool IsValidatorMethodAttribute(SyntaxNodeAnalysisContext context, AttributeSyntax attributeSyntax) {
@@ -78,11 +93,11 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         return false;
     }
 
-    private static Diagnostic CreateDiagnostic(DiagnosticDescriptor diagnosticDescriptor, PropertyDeclarationSyntax propertyDeclarationSyntax, params object?[] messageArgs)
+    private static Diagnostic CreateDiagnostic(DiagnosticDescriptor diagnosticDescriptor, PropertyDeclarationSyntax propertyDeclarationSyntax)
         => Diagnostic.Create(
             diagnosticDescriptor,
             propertyDeclarationSyntax.GetLocation(),
-            messageArgs
+            propertyDeclarationSyntax.Identifier.Text
         );
 
     private string? GetValidatorMethodName(IPropertySymbol propertySymbol) {
@@ -96,4 +111,10 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
 
         return null;
     }
+
+    private List<MethodDeclarationSyntax> GetCandidateMethodDeclarations(TypeDeclarationSyntax typeDeclarationSyntax, string methodName)
+        => typeDeclarationSyntax.Members
+            .OfType<MethodDeclarationSyntax>()
+            .Where(m => m.Identifier.Text == methodName)
+            .ToList();
 }

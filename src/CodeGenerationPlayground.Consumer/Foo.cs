@@ -6,5 +6,8 @@ public class Foo {
     [ValidatorMethod(null!)]
     public string? Baz { get; set; }
 
+    [ValidatorMethod("NotFound")]
+    public string? Qux { get; set; }
+
     public bool Validate() => Bar != null;
 }
