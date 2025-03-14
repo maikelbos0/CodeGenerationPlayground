@@ -18,4 +18,5 @@ namespace {nameof(CodeGenerationPlayground)} {{
     }}
 }}
 ";
+    public const string FullyQualifiedValidatorMethodTypeName = "System.ComponentModel.DataAnnotations.ValidationContext";
 }
