@@ -11,3 +11,4 @@ CGP004  | Analyzer | Warning  | PingableAnalyzer
 CGP005  | Analyzer | Warning  | ValidatorMethodAnalyzer
 CGP006  | Analyzer | Warning  | ValidatorMethodAnalyzer
 CGP007  | Analyzer | Warning  | ValidatorMethodAnalyzer
+CGP008  | Analyzer | Warning  | ValidatorMethodAnalyzer

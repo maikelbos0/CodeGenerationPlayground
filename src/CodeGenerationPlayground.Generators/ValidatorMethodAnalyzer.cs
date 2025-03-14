@@ -31,7 +31,16 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor validatorMethodNotFoundDescriptor = new(
         id: "CGP007",
         title: "Validator method not found",
-        messageFormat: "Can not find method specified by property '{0}'",
+        messageFormat: "Can not find validator method specified by property '{0}'",
+        category: "Analyzer",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
+
+    private static readonly DiagnosticDescriptor validatorMethodDoesNotReturnBoolDescriptor = new(
+        id: "CGP008",
+        title: "Validator method does not return 'bool'",
+        messageFormat: "Validator method specified by property '{0}' needs to have return type 'bool'",
         category: "Analyzer",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true
@@ -40,7 +49,8 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         propertyNotOwnedByTypeDescriptor,
         nullValidatorMethodDescriptor,
-        validatorMethodNotFoundDescriptor
+        validatorMethodNotFoundDescriptor,
+        validatorMethodDoesNotReturnBoolDescriptor
     );
 
     public override void Initialize(AnalysisContext context) {
@@ -83,6 +93,16 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         if (candidateMethodDeclarations.Count == 0) {
             context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax));
         }
+
+        var candidateMethodSymbols = candidateMethodDeclarations
+            .Select(candidateMethodDeclaration => context.SemanticModel.GetDeclaredSymbol(candidateMethodDeclaration))
+            .Where(candidateMethodSymbol => candidateMethodSymbol?.ReturnType.SpecialType == SpecialType.System_Boolean)
+            .ToList();
+
+        if (candidateMethodSymbols.Count == 0) {
+            context.ReportDiagnostic(CreateDiagnostic(validatorMethodDoesNotReturnBoolDescriptor, propertyDeclarationSyntax));
+        }
+
     }
 
     private bool IsValidatorMethodAttribute(SyntaxNodeAnalysisContext context, AttributeSyntax attributeSyntax) {

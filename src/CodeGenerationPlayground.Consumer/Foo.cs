@@ -9,5 +9,11 @@ public class Foo {
     [ValidatorMethod("NotFound")]
     public string? Qux { get; set; }
 
+    [ValidatorMethod(nameof(NoValidate))]
+    public string? Quux { get; set; }
+
+
     public bool Validate() => Bar != null;
+
+    public string NoValidate() => Bar ?? "Test";
 }
