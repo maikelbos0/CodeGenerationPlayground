@@ -3,7 +3,7 @@
 public partial interface IParent {
     public partial class Test {
         [Pingable]
-        public string Ping() => "";
+        public partial string Ping();
 
         [Pingable]
         public partial string Pong();
@@ -14,6 +14,6 @@ public partial interface IParent {
         public partial string Ping();
 
         [Pingable]
-        public string Pong() => "";
+        public partial string Pong();
     }
 }
