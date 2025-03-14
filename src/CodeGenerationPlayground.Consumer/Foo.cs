@@ -4,6 +4,8 @@ namespace CodeGenerationPlayground.Consumer;
 public class Foo {
     [ValidatorMethod(nameof(Validate1))]
     [ValidatorMethod(nameof(Validate2))]
+    [ValidatorMethod(nameof(Validate3))]
+    [ValidatorMethod(nameof(Validate4))]
     public string? Bar { get; set; }
 
     [ValidatorMethod(null!)]
