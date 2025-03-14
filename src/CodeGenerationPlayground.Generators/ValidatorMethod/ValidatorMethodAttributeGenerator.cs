@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace CodeGenerationPlayground.Generators;
+namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 
 [Generator(LanguageNames.CSharp)]
 public class ValidatorMethodAttributeGenerator : IIncrementalGenerator {
@@ -47,7 +47,7 @@ public class ValidatorMethodAttributeGenerator : IIncrementalGenerator {
         foreach (var attributeData in symbol.GetAttributes()) {
             if (attributeData.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == ValidatorMethodConstants.GlobalFullyQualifiedAttributeName
                 && attributeData.ConstructorArguments.Length > 0) {
-                    
+
                 return attributeData.ConstructorArguments[0].Value?.ToString();
             }
         }

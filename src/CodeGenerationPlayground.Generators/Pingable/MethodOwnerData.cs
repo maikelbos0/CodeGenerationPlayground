@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace CodeGenerationPlayground.Generators;
+namespace CodeGenerationPlayground.Generators.Pingable;
 
 public record struct MethodOwnerData(IMethodOwnerData? Owner, string Name, MethodOwnerType Type) : IMethodOwnerData {
     public readonly string TypeName => Type switch {

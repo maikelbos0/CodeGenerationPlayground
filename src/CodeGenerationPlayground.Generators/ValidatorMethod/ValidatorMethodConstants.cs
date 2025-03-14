@@ -1,4 +1,4 @@
-﻿namespace CodeGenerationPlayground.Generators;
+﻿namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 
 public static class ValidatorMethodConstants {
     public const string AttributeName = "ValidatorMethodAttribute";

@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace CodeGenerationPlayground.Generators;
+namespace CodeGenerationPlayground.Generators.Pingable;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class PingableAnalyzer : DiagnosticAnalyzer {

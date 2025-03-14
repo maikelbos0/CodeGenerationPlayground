@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace CodeGenerationPlayground.Generators;
+namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {

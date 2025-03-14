@@ -1,9 +1,10 @@
-﻿using System.Text;
+﻿using CodeGenerationPlayground.Generators.Pingable;
+using System.Text;
 using System.Threading.Tasks;
 using VerifyXunit;
 using Xunit;
 
-namespace CodeGenerationPlayground.Generators.Tests;
+namespace CodeGenerationPlayground.Generators.Tests.Pingable;
 
 public class MethodOwnerDataTests {
     [Theory]
