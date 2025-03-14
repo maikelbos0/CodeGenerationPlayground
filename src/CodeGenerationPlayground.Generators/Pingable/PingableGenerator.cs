@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace CodeGenerationPlayground.Generators;
+namespace CodeGenerationPlayground.Generators.Pingable;
 
 [Generator(LanguageNames.CSharp)]
 public class PingableGenerator : IIncrementalGenerator {

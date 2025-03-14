@@ -1,4 +1,4 @@
-﻿namespace CodeGenerationPlayground.Generators;
+﻿namespace CodeGenerationPlayground.Generators.Pingable;
 
 public enum MethodOwnerType {
     Namespace,

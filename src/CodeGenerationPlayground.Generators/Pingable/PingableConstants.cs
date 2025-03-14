@@ -1,4 +1,4 @@
-﻿namespace CodeGenerationPlayground.Generators;
+﻿namespace CodeGenerationPlayground.Generators.Pingable;
 
 public static class PingableConstants {
     public const string FullyQualifiedAttributeName = $"{nameof(CodeGenerationPlayground)}.PingableAttribute";

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace CodeGenerationPlayground.Generators;
+namespace CodeGenerationPlayground.Generators.Pingable;
 public interface IMethodOwnerData {
     string Name { get; set; }
     IMethodOwnerData? Owner { get; set; }
