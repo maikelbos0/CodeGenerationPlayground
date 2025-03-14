@@ -18,5 +18,5 @@ namespace {nameof(CodeGenerationPlayground)} {{
     }}
 }}
 ";
-    public const string FullyQualifiedValidatorMethodTypeName = "System.ComponentModel.DataAnnotations.ValidationContext";
+    public const string GlobalFullyQualifiedValidatorMethodTypeName = "global::System.ComponentModel.DataAnnotations.ValidationContext";
 }
