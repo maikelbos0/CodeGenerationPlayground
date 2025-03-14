@@ -28,15 +28,6 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
-    private static readonly DiagnosticDescriptor validatorMethodDoesNotReturnBoolDescriptor = new(
-        id: "CGP007",
-        title: "Validator method does not return 'bool'",
-        messageFormat: "Validator method '{1}' specified by property '{0}' needs to have return type 'bool'",
-        category: "Analyzer",
-        DiagnosticSeverity.Warning,
-        isEnabledByDefault: true
-    );
-
     private static readonly DiagnosticDescriptor validatorMethodSignatureIsInvalidDescriptor = new(
         id: "CGP007",
         title: "Validator method does not have a valid signature",
@@ -49,7 +40,7 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         propertyNotOwnedByTypeDescriptor,
         validatorMethodNotFoundDescriptor,
-        validatorMethodDoesNotReturnBoolDescriptor
+        validatorMethodSignatureIsInvalidDescriptor
     );
 
     public override void Initialize(AnalysisContext context) {
@@ -96,13 +87,9 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
 
         var candidateMethodSymbols = candidateMethodDeclarations
             .Select(candidateMethodDeclaration => context.SemanticModel.GetDeclaredSymbol(candidateMethodDeclaration))
-            .Where(candidateMethodSymbol => candidateMethodSymbol?.ReturnType.SpecialType == SpecialType.System_Boolean)
+            .Where(candidateMethodSymbol => candidateMethodSymbol != null)
             .Select(candidateMethodSymbol => candidateMethodSymbol!)
             .ToList();
-
-        if (candidateMethodSymbols.Count == 0) {
-            context.ReportDiagnostic(CreateDiagnostic(validatorMethodDoesNotReturnBoolDescriptor, propertyDeclarationSyntax, methodName));
-        }
 
         var validationContextNamedTypeSymbol = context.Compilation.GetTypeByMetadataName(ValidatorMethodConstants.FullyQualifiedValidatorMethodTypeName);
 
@@ -146,6 +133,10 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             .ToList();
 
     private bool IsValidatorMethod(IMethodSymbol candidateMethodSymbol, INamedTypeSymbol? validationContextNamedTypeSymbol) {
+        if (candidateMethodSymbol.ReturnType.SpecialType != SpecialType.System_Boolean) {
+            return false;
+        }
+
         var validParameters = 0;
 
         if (candidateMethodSymbol.Parameters.Length > 2) {
