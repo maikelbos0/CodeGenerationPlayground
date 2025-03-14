@@ -90,9 +90,7 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
                 .Select(candidateMethodSymbol => candidateMethodSymbol!)
                 .ToList();
 
-            var validationContextNamedTypeSymbol = context.Compilation.GetTypeByMetadataName(ValidatorMethodConstants.FullyQualifiedValidatorMethodTypeName);
-
-            if (candidateMethodSymbols.Count(candidateMethodSymbol => IsValidatorMethod(candidateMethodSymbol, validationContextNamedTypeSymbol)) != 1) {
+            if (candidateMethodSymbols.Count(IsValidatorMethod) != 1) {
                 context.ReportDiagnostic(CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, propertyDeclarationSyntax, methodName));
             }
         }
@@ -134,7 +132,7 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             .Where(m => m.Identifier.Text == methodName)
             .ToList();
 
-    private bool IsValidatorMethod(IMethodSymbol candidateMethodSymbol, INamedTypeSymbol? validationContextNamedTypeSymbol) {
+    private bool IsValidatorMethod(IMethodSymbol candidateMethodSymbol) {
         if (candidateMethodSymbol.ReturnType.SpecialType != SpecialType.System_Boolean) {
             return false;
         }
@@ -149,7 +147,7 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             validParameters++;
         }
 
-        if (candidateMethodSymbol.Parameters.Any(parameterSymbol => SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, validationContextNamedTypeSymbol))) {
+        if (candidateMethodSymbol.Parameters.Any(parameterSymbol => parameterSymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == ValidatorMethodConstants.GlobalFullyQualifiedValidatorMethodTypeName)) {
             validParameters++;
         }
 
