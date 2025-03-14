@@ -1,19 +1,9 @@
 ﻿using CodeGenerationPlayground.Consumer;
 using System;
-using System.ComponentModel.DataAnnotations;
 
 Console.WriteLine(new Parent.Class().Ping());
 Console.ReadKey();
 
-public class Bla123 : ValidationAttribute     {
-    protected override ValidationResult? IsValid(object? value, ValidationContext validationContext) {
-        return base.IsValid(value, validationContext);
-    }
-
-    public override bool IsValid(object? value) {
-        return base.IsValid(value);
-    }
-}
 /*
  using System;
 using System.ComponentModel.DataAnnotations;

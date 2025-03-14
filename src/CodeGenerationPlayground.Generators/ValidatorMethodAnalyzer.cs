@@ -37,6 +37,15 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
+    private static readonly DiagnosticDescriptor validatorMethodSignatureIsInvalidDescriptor = new(
+        id: "CGP007",
+        title: "Validator method does not have a valid signature",
+        messageFormat: "Validator method '{1}' specified by property '{0}' needs to have return type 'bool' and only accept parameters of type 'object?' and 'ValidationContext'",
+        category: "Analyzer",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         propertyNotOwnedByTypeDescriptor,
         validatorMethodNotFoundDescriptor,
@@ -49,7 +58,7 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         context.RegisterSyntaxNodeAction(AnalyseProperty, SyntaxKind.PropertyDeclaration);
     }
 
-    public void AnalyseProperty(SyntaxNodeAnalysisContext context) {
+    private void AnalyseProperty(SyntaxNodeAnalysisContext context) {
         if (context.Node is not PropertyDeclarationSyntax propertyDeclarationSyntax) {
             return;
         }
@@ -88,10 +97,17 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         var candidateMethodSymbols = candidateMethodDeclarations
             .Select(candidateMethodDeclaration => context.SemanticModel.GetDeclaredSymbol(candidateMethodDeclaration))
             .Where(candidateMethodSymbol => candidateMethodSymbol?.ReturnType.SpecialType == SpecialType.System_Boolean)
+            .Select(candidateMethodSymbol => candidateMethodSymbol!)
             .ToList();
 
         if (candidateMethodSymbols.Count == 0) {
             context.ReportDiagnostic(CreateDiagnostic(validatorMethodDoesNotReturnBoolDescriptor, propertyDeclarationSyntax, methodName));
+        }
+
+        var validationContextNamedTypeSymbol = context.Compilation.GetTypeByMetadataName(ValidatorMethodConstants.FullyQualifiedValidatorMethodTypeName);
+
+        if (candidateMethodSymbols.Count(candidateMethodSymbol => IsValidatorMethod(candidateMethodSymbol, validationContextNamedTypeSymbol)) != 1) {
+            context.ReportDiagnostic(CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, propertyDeclarationSyntax, methodName));
         }
     }
 
@@ -128,4 +144,22 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             .OfType<MethodDeclarationSyntax>()
             .Where(m => m.Identifier.Text == methodName)
             .ToList();
+
+    private bool IsValidatorMethod(IMethodSymbol candidateMethodSymbol, INamedTypeSymbol? validationContextNamedTypeSymbol) {
+        var validParameters = 0;
+
+        if (candidateMethodSymbol.Parameters.Length > 2) {
+            return false;
+        }
+
+        if (candidateMethodSymbol.Parameters.Any(parameterSymbol => parameterSymbol.Type.SpecialType == SpecialType.System_Object && parameterSymbol.NullableAnnotation != NullableAnnotation.NotAnnotated)) {
+            validParameters++;
+        }
+
+        if (candidateMethodSymbol.Parameters.Any(parameterSymbol => SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, validationContextNamedTypeSymbol))) {
+            validParameters++;
+        }
+
+        return validParameters == candidateMethodSymbol.Parameters.Length;
+    }
 }
