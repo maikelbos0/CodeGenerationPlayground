@@ -19,28 +19,19 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
-    private static readonly DiagnosticDescriptor nullValidatorMethodDescriptor = new(
-        id: "CGP006",
-        title: "Null validator method",
-        messageFormat: "Property '{0}' needs to specify a validator method",
-        category: "Analyzer",
-        DiagnosticSeverity.Warning,
-        isEnabledByDefault: true
-    );
-
     private static readonly DiagnosticDescriptor validatorMethodNotFoundDescriptor = new(
-        id: "CGP007",
+        id: "CGP006",
         title: "Validator method not found",
-        messageFormat: "Can not find validator method specified by property '{0}'",
+        messageFormat: "Can not find validator method '{1}' specified by property '{0}'",
         category: "Analyzer",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true
     );
 
     private static readonly DiagnosticDescriptor validatorMethodDoesNotReturnBoolDescriptor = new(
-        id: "CGP008",
+        id: "CGP007",
         title: "Validator method does not return 'bool'",
-        messageFormat: "Validator method specified by property '{0}' needs to have return type 'bool'",
+        messageFormat: "Validator method '{1}' specified by property '{0}' needs to have return type 'bool'",
         category: "Analyzer",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true
@@ -48,7 +39,6 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         propertyNotOwnedByTypeDescriptor,
-        nullValidatorMethodDescriptor,
         validatorMethodNotFoundDescriptor,
         validatorMethodDoesNotReturnBoolDescriptor
     );
@@ -59,7 +49,7 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         context.RegisterSyntaxNodeAction(AnalyseProperty, SyntaxKind.PropertyDeclaration);
     }
 
-    private void AnalyseProperty(SyntaxNodeAnalysisContext context) {
+    public void AnalyseProperty(SyntaxNodeAnalysisContext context) {
         if (context.Node is not PropertyDeclarationSyntax propertyDeclarationSyntax) {
             return;
         }
@@ -77,21 +67,22 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         }
 
         if (propertyDeclarationSyntax.Parent is not TypeDeclarationSyntax typeDeclarationSyntax) {
-            context.ReportDiagnostic(CreateDiagnostic(propertyNotOwnedByTypeDescriptor, propertyDeclarationSyntax));
+            context.ReportDiagnostic(CreateDiagnostic(propertyNotOwnedByTypeDescriptor, propertyDeclarationSyntax, null));
             return;
         }
 
         var methodName = GetValidatorMethodName(propertySymbol);
 
         if (methodName == null) {
-            context.ReportDiagnostic(CreateDiagnostic(nullValidatorMethodDescriptor, propertyDeclarationSyntax));
+            context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax, methodName));
             return;
         }
 
         var candidateMethodDeclarations = GetCandidateMethodDeclarations(typeDeclarationSyntax, methodName);
 
         if (candidateMethodDeclarations.Count == 0) {
-            context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax));
+            context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax, methodName));
+            return;
         }
 
         var candidateMethodSymbols = candidateMethodDeclarations
@@ -100,9 +91,8 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             .ToList();
 
         if (candidateMethodSymbols.Count == 0) {
-            context.ReportDiagnostic(CreateDiagnostic(validatorMethodDoesNotReturnBoolDescriptor, propertyDeclarationSyntax));
+            context.ReportDiagnostic(CreateDiagnostic(validatorMethodDoesNotReturnBoolDescriptor, propertyDeclarationSyntax, methodName));
         }
-
     }
 
     private bool IsValidatorMethodAttribute(SyntaxNodeAnalysisContext context, AttributeSyntax attributeSyntax) {
@@ -113,11 +103,12 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         return false;
     }
 
-    private static Diagnostic CreateDiagnostic(DiagnosticDescriptor diagnosticDescriptor, PropertyDeclarationSyntax propertyDeclarationSyntax)
+    private static Diagnostic CreateDiagnostic(DiagnosticDescriptor diagnosticDescriptor, PropertyDeclarationSyntax propertyDeclarationSyntax, string? methodName)
         => Diagnostic.Create(
             diagnosticDescriptor,
             propertyDeclarationSyntax.GetLocation(),
-            propertyDeclarationSyntax.Identifier.Text
+            propertyDeclarationSyntax.Identifier.Text,
+            methodName
         );
 
     private string? GetValidatorMethodName(IPropertySymbol propertySymbol) {
