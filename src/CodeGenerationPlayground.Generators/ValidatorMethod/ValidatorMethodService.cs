@@ -5,10 +5,13 @@ namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 
 public class ValidatorMethodService {
     private readonly PropertyDeclarationSyntax? propertyDeclarationSyntax;
+    private readonly TypeDeclarationSyntax? typeDeclarationSyntax;
 
     public bool IsProperty => propertyDeclarationSyntax != null;
-
-    public ValidatorMethodService(/*SemanticModel semanticModel, */SyntaxNode node) {
+    public bool HasValidParent => typeDeclarationSyntax != null;
+    
+    public ValidatorMethodService(SyntaxNode node) {
         propertyDeclarationSyntax = node as PropertyDeclarationSyntax;
+        typeDeclarationSyntax = node.Parent as TypeDeclarationSyntax;
     }
 }
