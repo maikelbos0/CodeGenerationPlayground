@@ -52,30 +52,19 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
     private void AnalyseProperty(SyntaxNodeAnalysisContext context) {
         var service = new ValidatorMethodService(new SymbolProvider(context.SemanticModel), context.Node, context.CancellationToken);
 
-        if (!service.IsProperty) {
-            return;
-        }
-
-        if (!service.HasValidatorMethodAttributes) {
+        if (!service.IsProperty || !service.HasValidatorMethodAttributes || !service.HasPropertySymbol) {
             return;
         }
 
         // We can get this from the service if we need to but currently I don't think it's needed; let's first move all logic to the service and then see
         var propertyDeclarationSyntax = (PropertyDeclarationSyntax)context.Node;
-
-        var propertySymbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclarationSyntax, context.CancellationToken);
-
-        if (propertySymbol == null) {
-            return;
-        }
+        var propertySymbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclarationSyntax, context.CancellationToken)!;
+        var typeDeclarationSyntax = (TypeDeclarationSyntax)context.Node.Parent!;
 
         if (!service.HasValidParent) {
             context.ReportDiagnostic(CreateDiagnostic(propertyNotOwnedByTypeDescriptor, propertyDeclarationSyntax, null));
             return;
         }
-
-        // We can get this from the service if we need to but currently I don't think it's needed; let's first move all logic to the service and then see
-        var typeDeclarationSyntax = (TypeDeclarationSyntax)context.Node.Parent!;
 
         foreach (var methodName in GetValidatorMethodNames(propertySymbol)) {
             if (methodName == null) {
