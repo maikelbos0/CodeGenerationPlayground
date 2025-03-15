@@ -120,10 +120,6 @@ public class ValidatorMethodServiceTests {
 
         var node = parent.Members.Single();
 
-        var x = Substitute.For<IMethodSymbol>();
-
-        x.GetAttributes().Returns(callInfo => new ImmutableArray<AttributeData>());
-        
         var symbolProvider = Substitute.For<ISymbolProvider>();
         symbolProvider.GetSymbol(Arg.Any<AttributeSyntax>(), CancellationToken.None)
             .Returns(callInfo => {
@@ -161,10 +157,6 @@ public class ValidatorMethodServiceTests {
             .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property]));
 
         var node = parent.Members.Single();
-
-        var x = Substitute.For<IMethodSymbol>();
-
-        x.GetAttributes().Returns(callInfo => new ImmutableArray<AttributeData>());
 
         var symbolProvider = Substitute.For<ISymbolProvider>();
         symbolProvider.GetSymbol(Arg.Any<AttributeSyntax>(), CancellationToken.None)
