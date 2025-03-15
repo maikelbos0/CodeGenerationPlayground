@@ -56,9 +56,9 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             return;
         }
 
-        // We can get this from the service if we need to but currently - I don't think it's needed
+        // We can get this from the service if we need to but currently I don't think it's needed; let's first move all logic to the service and then see
         var propertyDeclarationSyntax = (PropertyDeclarationSyntax)context.Node;
-
+        
         if (!propertyDeclarationSyntax.AttributeLists
             .SelectMany(attributeList => attributeList.Attributes)
             .Any(attribute => IsValidatorMethodAttribute(context, attribute))) {
@@ -71,10 +71,13 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             return;
         }
 
-        if (propertyDeclarationSyntax.Parent is not TypeDeclarationSyntax typeDeclarationSyntax) {
+        if (!service.HasValidParent) {
             context.ReportDiagnostic(CreateDiagnostic(propertyNotOwnedByTypeDescriptor, propertyDeclarationSyntax, null));
             return;
         }
+
+        // We can get this from the service if we need to but currently I don't think it's needed; let's first move all logic to the service and then see
+        var typeDeclarationSyntax = (TypeDeclarationSyntax)context.Node.Parent!;
 
         foreach (var methodName in GetValidatorMethodNames(propertySymbol)) {
             if (methodName == null) {
