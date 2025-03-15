@@ -50,9 +50,14 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
     }
 
     private void AnalyseProperty(SyntaxNodeAnalysisContext context) {
-        if (context.Node is not PropertyDeclarationSyntax propertyDeclarationSyntax) {
+        var service = new ValidatorMethodService(context.Node);
+
+        if (!service.IsProperty) {
             return;
         }
+
+        // We can get this from the service if we need to but currently - I don't think it's needed
+        var propertyDeclarationSyntax = (PropertyDeclarationSyntax)context.Node;
 
         if (!propertyDeclarationSyntax.AttributeLists
             .SelectMany(attributeList => attributeList.Attributes)
