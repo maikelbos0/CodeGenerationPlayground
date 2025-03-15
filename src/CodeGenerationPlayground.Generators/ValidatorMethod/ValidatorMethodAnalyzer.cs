@@ -50,22 +50,20 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
     }
 
     private void AnalyseProperty(SyntaxNodeAnalysisContext context) {
-        var service = new ValidatorMethodService(context.Node);
+        var service = new ValidatorMethodService(new SymbolProvider(context.SemanticModel), context.Node, context.CancellationToken);
 
         if (!service.IsProperty) {
             return;
         }
 
-        // We can get this from the service if we need to but currently I don't think it's needed; let's first move all logic to the service and then see
-        var propertyDeclarationSyntax = (PropertyDeclarationSyntax)context.Node;
-        
-        if (!propertyDeclarationSyntax.AttributeLists
-            .SelectMany(attributeList => attributeList.Attributes)
-            .Any(attribute => IsValidatorMethodAttribute(context, attribute))) {
+        if (!service.HasValidatorMethodAttributes) {
             return;
         }
 
-        var propertySymbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclarationSyntax);
+        // We can get this from the service if we need to but currently I don't think it's needed; let's first move all logic to the service and then see
+        var propertyDeclarationSyntax = (PropertyDeclarationSyntax)context.Node;
+
+        var propertySymbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclarationSyntax, context.CancellationToken);
 
         if (propertySymbol == null) {
             return;
