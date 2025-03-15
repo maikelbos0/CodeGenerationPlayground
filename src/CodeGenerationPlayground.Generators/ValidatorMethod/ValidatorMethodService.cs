@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
 using System.Threading;
 
 namespace CodeGenerationPlayground.Generators.ValidatorMethod;
@@ -8,25 +7,18 @@ namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 public class ValidatorMethodService {
     private readonly PropertyDeclarationSyntax? propertyDeclarationSyntax;
     private readonly TypeDeclarationSyntax? typeDeclarationSyntax;
+    private readonly bool hasValidatorMethodAttributes;
 
     public bool IsProperty => propertyDeclarationSyntax != null;
     public bool HasValidParent => typeDeclarationSyntax != null;
-    public bool HasValidatorMethodAttributes { get; }
+    public bool HasValidatorMethodAttributes => hasValidatorMethodAttributes;
 
     public ValidatorMethodService(ISymbolProvider symbolProvider, SyntaxNode node, CancellationToken cancellationToken) {
-        propertyDeclarationSyntax = node as PropertyDeclarationSyntax;
-
-        if (propertyDeclarationSyntax == null) {
+        if ((propertyDeclarationSyntax = node as PropertyDeclarationSyntax) == null || (typeDeclarationSyntax = node.Parent as TypeDeclarationSyntax) == null) {
             return;
         }
 
-        typeDeclarationSyntax = node.Parent as TypeDeclarationSyntax;
-
-        if (typeDeclarationSyntax == null) {
-            return;
-        }
-
-        this.HasValidatorMethodAttributes = HasValidatorMethodAttributes(propertyDeclarationSyntax);
+        hasValidatorMethodAttributes = HasValidatorMethodAttributes(propertyDeclarationSyntax);
 
         bool HasValidatorMethodAttributes(PropertyDeclarationSyntax propertyDeclarationSyntax) {
             foreach (var attributeListSyntax in propertyDeclarationSyntax.AttributeLists) {
