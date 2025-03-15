@@ -31,8 +31,7 @@ public class ValidatorMethodService {
         bool HasValidatorMethodAttributes(PropertyDeclarationSyntax propertyDeclarationSyntax) {
             foreach (var attributeListSyntax in propertyDeclarationSyntax.AttributeLists) {
                 foreach (var attributeSyntax in attributeListSyntax.Attributes) {
-                    if (symbolProvider.GetSymbol(attributeSyntax, cancellationToken) is IMethodSymbol methodSymbol
-                        && methodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == ValidatorMethodConstants.GlobalFullyQualifiedAttributeName) {
+                    if (symbolProvider.GetSymbol(attributeSyntax, cancellationToken) is IMethodSymbol methodSymbol && methodSymbol.ContainingType.HasName(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName)) {
                         return true;
                     }
                 }
