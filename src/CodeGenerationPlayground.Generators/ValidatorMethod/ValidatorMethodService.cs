@@ -8,13 +8,29 @@ public class ValidatorMethodService {
     private readonly PropertyDeclarationSyntax? propertyDeclarationSyntax;
     private readonly TypeDeclarationSyntax? typeDeclarationSyntax;
     private readonly bool hasValidatorMethodAttributes;
+    private readonly IPropertySymbol? propertySymbol;
 
     public bool IsProperty => propertyDeclarationSyntax != null;
     public bool HasValidParent => typeDeclarationSyntax != null;
     public bool HasValidatorMethodAttributes => hasValidatorMethodAttributes;
+    public bool HasPropertySymbol => propertySymbol != null;
 
     public ValidatorMethodService(ISymbolProvider symbolProvider, SyntaxNode node, CancellationToken cancellationToken) {
-        if ((propertyDeclarationSyntax = node as PropertyDeclarationSyntax) == null || (typeDeclarationSyntax = node.Parent as TypeDeclarationSyntax) == null) {
+        propertyDeclarationSyntax = node as PropertyDeclarationSyntax;
+
+        if (propertyDeclarationSyntax == null) {
+            return;
+        }
+
+        typeDeclarationSyntax = node.Parent as TypeDeclarationSyntax;
+
+        if (typeDeclarationSyntax == null) {
+            return;
+        }
+
+        propertySymbol = symbolProvider.GetPropertySymbol(propertyDeclarationSyntax, cancellationToken);
+
+        if (propertySymbol == null) {
             return;
         }
 

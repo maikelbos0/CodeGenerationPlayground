@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NSubstitute;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Xunit;
@@ -99,6 +98,47 @@ public class ValidatorMethodServiceTests {
     }
 
     [Fact]
+    public void HasPropertySymbolReturnsTrueWithPropertySymbol() {
+        var property = SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+            SyntaxFactory.Identifier("Foo")
+        );
+
+        var parent = SyntaxFactory.ClassDeclaration("Bar")
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property]));
+
+        var node = parent.Members.Single();
+
+        var symbolProvider = Substitute.For<ISymbolProvider>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns(Substitute.For<IPropertySymbol>());
+
+        var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
+
+        Assert.True(subject.HasPropertySymbol);
+    }
+
+    [Fact]
+    public void HasPropertySymbolReturnsFalseWithoutPropertySymbol() {
+        var property = SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+            SyntaxFactory.Identifier("Foo")
+        );
+
+        var parent = SyntaxFactory.ClassDeclaration("Bar")
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property]));
+
+        var node = parent.Members.Single();
+
+        var symbolProvider = Substitute.For<ISymbolProvider>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns((IPropertySymbol?)null);
+
+        var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
+
+        Assert.False(subject.HasPropertySymbol);
+    }
+
+
+    [Fact]
     public void HasValidatorMethodAttributesReturnsTrueWithValidatorMethodAttribute() {
         var attributeList1 = SyntaxFactory.AttributeList(SyntaxFactory.SeparatedList([
             SyntaxFactory.Attribute(SyntaxFactory.IdentifierName("FooAttribute"))
@@ -121,6 +161,7 @@ public class ValidatorMethodServiceTests {
         var node = parent.Members.Single();
 
         var symbolProvider = Substitute.For<ISymbolProvider>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns(Substitute.For<IPropertySymbol>());
         symbolProvider.GetSymbol(Arg.Any<AttributeSyntax>(), CancellationToken.None)
             .Returns(callInfo => {
                 var methodSymbol = Substitute.For<IMethodSymbol>();
@@ -159,6 +200,7 @@ public class ValidatorMethodServiceTests {
         var node = parent.Members.Single();
 
         var symbolProvider = Substitute.For<ISymbolProvider>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns(Substitute.For<IPropertySymbol>());
         symbolProvider.GetSymbol(Arg.Any<AttributeSyntax>(), CancellationToken.None)
             .Returns(callInfo => {
                 var methodSymbol = Substitute.For<IMethodSymbol>();
