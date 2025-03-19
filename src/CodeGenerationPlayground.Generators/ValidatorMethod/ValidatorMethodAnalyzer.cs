@@ -66,16 +66,16 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             return;
         }
 
-        foreach (var methodName in GetValidatorMethodNames(propertySymbol)) {
-            if (methodName == null) {
-                context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax, methodName));
+        foreach (var validatorMethodData in service.GetValidatorMethodData()) {
+            if (validatorMethodData.Name == null) {
+                context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
                 return;
             }
 
-            var candidateMethodDeclarations = GetCandidateMethodDeclarations(typeDeclarationSyntax, methodName);
+            var candidateMethodDeclarations = GetCandidateMethodDeclarations(typeDeclarationSyntax, validatorMethodData.Name);
 
             if (candidateMethodDeclarations.Count == 0) {
-                context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax, methodName));
+                context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
                 return;
             }
 
@@ -86,17 +86,9 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
                 .ToList();
 
             if (candidateMethodSymbols.Count(IsValidatorMethod) != 1) {
-                context.ReportDiagnostic(CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, propertyDeclarationSyntax, methodName));
+                context.ReportDiagnostic(CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
             }
         }
-    }
-
-    private bool IsValidatorMethodAttribute(SyntaxNodeAnalysisContext context, AttributeSyntax attributeSyntax) {
-        if (context.SemanticModel.GetSymbolInfo(attributeSyntax, context.CancellationToken).Symbol is IMethodSymbol methodSymbol) {
-            return methodSymbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == ValidatorMethodConstants.GlobalFullyQualifiedAttributeName;
-        }
-
-        return false;
     }
 
     private static Diagnostic CreateDiagnostic(DiagnosticDescriptor diagnosticDescriptor, PropertyDeclarationSyntax propertyDeclarationSyntax, string? methodName)
@@ -106,20 +98,6 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             propertyDeclarationSyntax.Identifier.Text,
             methodName
         );
-
-    private List<string?> GetValidatorMethodNames(IPropertySymbol propertySymbol) {
-        var methodNames = new List<string?>();
-
-        foreach (var attributeData in propertySymbol.GetAttributes()) {
-            if (attributeData.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == ValidatorMethodConstants.GlobalFullyQualifiedAttributeName
-                && attributeData.ConstructorArguments.Length > 0) {
-
-                methodNames.Add(attributeData.ConstructorArguments[0].Value?.ToString());
-            }
-        }
-
-        return methodNames;
-    }
 
     private List<MethodDeclarationSyntax> GetCandidateMethodDeclarations(TypeDeclarationSyntax typeDeclarationSyntax, string methodName)
         => typeDeclarationSyntax.Members

@@ -216,4 +216,96 @@ public class ValidatorMethodServiceTests {
 
         Assert.False(subject.HasValidatorMethodAttributes);
     }
+
+    [Fact]
+    public void GetValidatorMethodDataReturnsEmptyListWithoutPropertySymbol() {
+        var property = SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+            SyntaxFactory.Identifier("Foo")
+        );
+
+        var parent = SyntaxFactory.ClassDeclaration("Bar")
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property]));
+
+        var node = parent.Members.Single();
+
+        var symbolProvider = Substitute.For<ISymbolProvider>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns((IPropertySymbol?)null);
+
+        var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
+
+        var result = subject.GetValidatorMethodData();
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void GetValidatorMethodDataReturnsEmptyListWithoutValidatorMethodAttributes() {
+        var property = SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+            SyntaxFactory.Identifier("Foo")
+        );
+
+        var parent = SyntaxFactory.ClassDeclaration("Bar")
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property]));
+
+        var node = parent.Members.Single();
+
+        var symbolProvider = Substitute.For<ISymbolProvider>();
+        var propertySymbol = Substitute.For<IPropertySymbol>();
+        var attributeData1 = Substitute.For<AttributeData>();
+        var attributeData2 = Substitute.For<AttributeData>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns(propertySymbol);
+        propertySymbol.GetAttributes().Returns([attributeData1, attributeData2]);
+        attributeData1.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns($"global::{nameof(CodeGenerationPlayground)}.FooAttribute");
+        attributeData2.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns($"global::{nameof(CodeGenerationPlayground)}.BarAttribute");
+
+        var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
+
+        var result = subject.GetValidatorMethodData();
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void GetValidatorMethodDataReturnsValidatorMethodDataIfPresent() {
+        var property = SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+            SyntaxFactory.Identifier("Foo")
+        );
+
+        var parent = SyntaxFactory.ClassDeclaration("Bar")
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property]));
+
+        var node = parent.Members.Single();
+
+        var symbolProvider = Substitute.For<ISymbolProvider>();
+        var propertySymbol = Substitute.For<IPropertySymbol>();
+        var attributeData1 = Substitute.For<AttributeData>();
+        var attributeData2 = Substitute.For<AttributeData>();
+        var attributeData3 = Substitute.For<AttributeData>();
+        var attributeData4 = Substitute.For<AttributeData>();
+        var attributeData5 = Substitute.For<AttributeData>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns(propertySymbol);
+        propertySymbol.GetAttributes().Returns([attributeData1, attributeData2, attributeData3, attributeData4, attributeData5]);
+        attributeData1.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns($"global::{nameof(CodeGenerationPlayground)}.FooAttribute");
+        attributeData2.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName);
+        attributeData3.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName);
+        attributeData4.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns($"global::{nameof(CodeGenerationPlayground)}.BarAttribute");
+        attributeData5.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName);
+        symbolProvider.TryGetConstructorArgumentValue(Arg.Any<AttributeData>(), Arg.Any<int>(), out Arg.Any<string?>()).Returns(false);
+        symbolProvider.TryGetConstructorArgumentValue(attributeData2, Arg.Any<int>(), out Arg.Any<string?>()).Returns(callInfo => {
+            callInfo[2] = "ValidatorMethod1";
+            return true;
+        });
+        symbolProvider.TryGetConstructorArgumentValue(attributeData3, Arg.Any<int>(), out Arg.Any<string?>()).Returns(callInfo => {
+            callInfo[2] = "ValidatorMethod2";
+            return true; 
+        });
+        var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
+
+        var result = subject.GetValidatorMethodData();
+
+        Assert.Equal(2, result.Count);
+    }
 }

@@ -16,4 +16,14 @@ public class SymbolProvider : ISymbolProvider {
 
     public ISymbol? GetSymbol(AttributeSyntax attributeSyntax, CancellationToken cancellationToken)
         => semanticModel.GetSymbolInfo(attributeSyntax, cancellationToken).Symbol;
+
+    public bool TryGetConstructorArgumentValue(AttributeData attributeData, int index, out string? value) {
+        if (attributeData.ConstructorArguments.Length > index) {
+            value = attributeData.ConstructorArguments[index].Value?.ToString();
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace CodeGenerationPlayground.Generators.ValidatorMethod;
@@ -9,6 +10,7 @@ public class ValidatorMethodService {
     private readonly TypeDeclarationSyntax? typeDeclarationSyntax;
     private readonly bool hasValidatorMethodAttributes;
     private readonly IPropertySymbol? propertySymbol;
+    private readonly ISymbolProvider symbolProvider;
 
     public bool IsProperty => propertyDeclarationSyntax != null;
     public bool HasValidParent => typeDeclarationSyntax != null;
@@ -16,6 +18,7 @@ public class ValidatorMethodService {
     public bool HasPropertySymbol => propertySymbol != null;
 
     public ValidatorMethodService(ISymbolProvider symbolProvider, SyntaxNode node, CancellationToken cancellationToken) {
+        this.symbolProvider = symbolProvider;
         propertyDeclarationSyntax = node as PropertyDeclarationSyntax;
 
         if (propertyDeclarationSyntax == null) {
@@ -47,5 +50,19 @@ public class ValidatorMethodService {
 
             return false;
         }
+    }
+
+    public List<ValidatorMethodData> GetValidatorMethodData() {
+        var validatorMethodData = new List<ValidatorMethodData>();
+
+        if (propertySymbol != null) {
+            foreach (var attributeData in propertySymbol.GetAttributes()) {
+                if (attributeData.AttributeClass.HasName(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName) && symbolProvider.TryGetConstructorArgumentValue(attributeData, 0, out var validatorMethod)) {
+                    validatorMethodData.Add(new ValidatorMethodData(validatorMethod));
+                }
+            }
+        }
+
+        return validatorMethodData;
     }
 }
