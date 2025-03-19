@@ -1,3 +1,7 @@
-﻿namespace CodeGenerationPlayground.Generators.ValidatorMethod;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Immutable;
 
-public record struct ValidatorMethodData(string? Name);
+namespace CodeGenerationPlayground.Generators.ValidatorMethod;
+
+// TODO turn into some other struct
+public record struct ValidatorMethodData(string? Name, ImmutableArray<MethodDeclarationSyntax> CandidateMethods);

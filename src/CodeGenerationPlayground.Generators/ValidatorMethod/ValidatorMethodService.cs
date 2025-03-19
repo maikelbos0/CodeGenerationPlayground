@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 
 namespace CodeGenerationPlayground.Generators.ValidatorMethod;
@@ -58,11 +59,25 @@ public class ValidatorMethodService {
         if (propertySymbol != null) {
             foreach (var attributeData in propertySymbol.GetAttributes()) {
                 if (attributeData.AttributeClass.HasName(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName) && symbolProvider.TryGetConstructorArgumentValue(attributeData, 0, out var validatorMethod)) {
-                    validatorMethodData.Add(new ValidatorMethodData(validatorMethod));
+                    validatorMethodData.Add(new ValidatorMethodData(validatorMethod, GetCandidateMethodDeclarations(validatorMethod)));
                 }
             }
         }
 
         return validatorMethodData;
+    }
+
+    private ImmutableArray<MethodDeclarationSyntax> GetCandidateMethodDeclarations(string? methodName) {
+        var candidateMethodDeclarations = new List<MethodDeclarationSyntax>();
+
+        if (typeDeclarationSyntax != null) {
+            foreach (var member in typeDeclarationSyntax.Members) {
+                if (member is MethodDeclarationSyntax methodDeclarationSyntax && methodDeclarationSyntax.Identifier.Text == methodName) {
+                    candidateMethodDeclarations.Add(methodDeclarationSyntax);
+                }
+            }
+        }
+
+        return ImmutableArray.CreateRange(candidateMethodDeclarations);
     }
 }
