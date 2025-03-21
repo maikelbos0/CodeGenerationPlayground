@@ -375,7 +375,7 @@ public class ValidatorMethodServiceTests {
     [InlineData(true, false, ParameterType.ValidationContext, ParameterType.ValidationContext)]
     [InlineData(true, false, ParameterType.ValidationContext, ParameterType.Object, ParameterType.Object)]
     [InlineData(true, false, ParameterType.ValidationContext, ParameterType.Object, ParameterType.Invalid)]
-    public void GetValidatorMethodDataReturnsCorrectlyMappedCandidateMethod(bool returnBoolean, bool expectedIsValid, params ParameterType[] parameterTypes) {
+    public void GetValidatorMethodDataReturnsCorrectlyMappedCandidateMethod(bool returnBoolean, bool expectedHasValidSignature, params ParameterType[] parameterTypes) {
         var property = SyntaxFactory.PropertyDeclaration(
             SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
             SyntaxFactory.Identifier("Foo")
@@ -414,7 +414,7 @@ public class ValidatorMethodServiceTests {
 
         var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
 
-        Assert.Equal(expectedIsValid, candidateMethodData.IsValid);
+        Assert.Equal(expectedHasValidSignature, candidateMethodData.HasValidSignature);
         Assert.Equal(parameterTypes.DefaultIfEmpty(ParameterType.None).First(), candidateMethodData.FirstParameterType);
         Assert.Equal(parameterTypes.Skip(1).DefaultIfEmpty(ParameterType.None).First(), candidateMethodData.SecondParameterType);
 
@@ -484,5 +484,52 @@ public class ValidatorMethodServiceTests {
         var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
 
         Assert.Equal(expectedParameterType, candidateMethodData.FirstParameterType);
+    }
+
+    [Theory]
+    [InlineData(true, SyntaxKind.PublicKeyword)]
+    [InlineData(true, SyntaxKind.InternalKeyword)]
+    [InlineData(true, SyntaxKind.StaticKeyword, SyntaxKind.InternalKeyword)]
+    [InlineData(false, SyntaxKind.PrivateKeyword)]
+    [InlineData(false)]
+    public void GetValidatorMethodDataReturnsCorrectIsAccessible(bool expectedIsAccessible, params SyntaxKind[] modifiers) {
+        var property = SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+            SyntaxFactory.Identifier("Foo")
+        );
+
+        var candidateMethod = SyntaxFactory.MethodDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)),
+            SyntaxFactory.Identifier("ValidatorMethod")
+        ).WithModifiers(SyntaxFactory.TokenList(modifiers.Select(modifier => SyntaxFactory.Token(modifier))));
+
+        var parent = SyntaxFactory.ClassDeclaration("Bar")
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property, candidateMethod]));
+
+        var node = parent.Members.OfType<PropertyDeclarationSyntax>().Single();
+
+        var symbolProvider = Substitute.For<ISymbolProvider>();
+        var propertySymbol = Substitute.For<IPropertySymbol>();
+        var attributeData = Substitute.For<AttributeData>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns(propertySymbol);
+        propertySymbol.GetAttributes().Returns([attributeData]);
+        attributeData.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName);
+        symbolProvider.TryGetConstructorArgumentValue(attributeData, Arg.Any<int>(), out Arg.Any<string?>()).Returns(callInfo => {
+            callInfo[2] = "ValidatorMethod";
+            return true;
+        });
+
+        var methodSymbol = Substitute.For<IMethodSymbol>();
+        symbolProvider.GetMethodSymbol(Arg.Any<MethodDeclarationSyntax>(), CancellationToken.None).Returns(methodSymbol);
+        methodSymbol.ReturnType.SpecialType.Returns(SpecialType.System_Boolean);
+        methodSymbol.Parameters.Returns(ImmutableArray<IParameterSymbol>.Empty);
+
+        var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
+
+        var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
+
+        var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
+
+        Assert.Equal(expectedIsAccessible, candidateMethodData.IsAccessible);
     }
 }

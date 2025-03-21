@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -79,19 +80,27 @@ public class ValidatorMethodService {
                         break;
                     }
 
-                    var isValid = candidateMethodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean && candidateMethodSymbol.Parameters.Length <= 2;
+                    var isAccessible = false;
+                    foreach (var modifier in methodDeclarationSyntax.Modifiers) { 
+                        if (modifier.IsKind(SyntaxKind.PublicKeyword) || modifier.IsKind(SyntaxKind.InternalKeyword)) {
+                            isAccessible = true;
+                            break;
+                        }
+                    }
+
+                    var hasValidSignature = candidateMethodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean && candidateMethodSymbol.Parameters.Length <= 2;
                     var firstParameterType = candidateMethodSymbol.Parameters.Length > 0 ? GetParamaterType(candidateMethodSymbol.Parameters[0]) : ParameterType.None;
                     var secondParameterType = candidateMethodSymbol.Parameters.Length > 1 ? GetParamaterType(candidateMethodSymbol.Parameters[1]) : ParameterType.None;
 
                     if (firstParameterType == ParameterType.Invalid || secondParameterType == ParameterType.Invalid) {
-                        isValid = false;
+                        hasValidSignature = false;
                     }
                     
                     if (firstParameterType != ParameterType.None && firstParameterType == secondParameterType) {
-                        isValid = false;
+                        hasValidSignature = false;
                     }
 
-                    candidateMethodDeclarations.Add(new(firstParameterType, secondParameterType, isValid));
+                    candidateMethodDeclarations.Add(new(firstParameterType, secondParameterType, hasValidSignature, isAccessible));
                 }
             }
         }
