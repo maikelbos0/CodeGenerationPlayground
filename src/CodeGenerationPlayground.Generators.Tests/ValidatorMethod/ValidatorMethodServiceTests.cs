@@ -532,4 +532,50 @@ public class ValidatorMethodServiceTests {
 
         Assert.Equal(expectedIsAccessible, candidateMethodData.IsAccessible);
     }
+
+    [Theory]
+    [InlineData(false, SyntaxKind.PublicKeyword)]
+    [InlineData(true, SyntaxKind.InternalKeyword, SyntaxKind.StaticKeyword)]
+    [InlineData(true, SyntaxKind.StaticKeyword)]
+    [InlineData(false)]
+    public void GetValidatorMethodDataReturnsCorrectIsStatic(bool expectedIsStatic, params SyntaxKind[] modifiers) {
+        var property = SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+            SyntaxFactory.Identifier("Foo")
+        );
+
+        var candidateMethod = SyntaxFactory.MethodDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)),
+            SyntaxFactory.Identifier("ValidatorMethod")
+        ).WithModifiers(SyntaxFactory.TokenList(modifiers.Select(modifier => SyntaxFactory.Token(modifier))));
+
+        var parent = SyntaxFactory.ClassDeclaration("Bar")
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property, candidateMethod]));
+
+        var node = parent.Members.OfType<PropertyDeclarationSyntax>().Single();
+
+        var symbolProvider = Substitute.For<ISymbolProvider>();
+        var propertySymbol = Substitute.For<IPropertySymbol>();
+        var attributeData = Substitute.For<AttributeData>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns(propertySymbol);
+        propertySymbol.GetAttributes().Returns([attributeData]);
+        attributeData.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName);
+        symbolProvider.TryGetConstructorArgumentValue(attributeData, Arg.Any<int>(), out Arg.Any<string?>()).Returns(callInfo => {
+            callInfo[2] = "ValidatorMethod";
+            return true;
+        });
+
+        var methodSymbol = Substitute.For<IMethodSymbol>();
+        symbolProvider.GetMethodSymbol(Arg.Any<MethodDeclarationSyntax>(), CancellationToken.None).Returns(methodSymbol);
+        methodSymbol.ReturnType.SpecialType.Returns(SpecialType.System_Boolean);
+        methodSymbol.Parameters.Returns(ImmutableArray<IParameterSymbol>.Empty);
+
+        var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
+
+        var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
+
+        var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
+
+        Assert.Equal(expectedIsStatic, candidateMethodData.IsStatic);
+    }
 }

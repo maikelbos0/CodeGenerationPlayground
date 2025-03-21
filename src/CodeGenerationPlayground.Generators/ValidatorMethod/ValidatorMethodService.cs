@@ -81,10 +81,13 @@ public class ValidatorMethodService {
                     }
 
                     var isAccessible = false;
+                    var isStatic = false;
                     foreach (var modifier in methodDeclarationSyntax.Modifiers) { 
                         if (modifier.IsKind(SyntaxKind.PublicKeyword) || modifier.IsKind(SyntaxKind.InternalKeyword)) {
                             isAccessible = true;
-                            break;
+                        }
+                        else if (modifier.IsKind(SyntaxKind.StaticKeyword)) {
+                            isStatic = true;
                         }
                     }
 
@@ -100,7 +103,7 @@ public class ValidatorMethodService {
                         hasValidSignature = false;
                     }
 
-                    candidateMethodDeclarations.Add(new(firstParameterType, secondParameterType, hasValidSignature, isAccessible));
+                    candidateMethodDeclarations.Add(new(firstParameterType, secondParameterType, hasValidSignature, isAccessible, isStatic));
                 }
             }
         }
