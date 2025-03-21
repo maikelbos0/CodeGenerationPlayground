@@ -100,7 +100,7 @@ public class ValidatorMethodService {
     }
 
     private ParameterType GetParamaterType(IParameterSymbol parameterSymbol) {
-        if (parameterSymbol.Type.SpecialType == SpecialType.System_Object) {
+        if (parameterSymbol.Type.SpecialType == SpecialType.System_Object && parameterSymbol.NullableAnnotation != NullableAnnotation.NotAnnotated) {
             return ParameterType.Object;
         }
         else if (parameterSymbol.Type.HasName(ValidatorMethodConstants.GlobalFullyQualifiedValidationContextTypeName)) {
