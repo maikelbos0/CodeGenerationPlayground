@@ -11,8 +11,12 @@ public class SymbolProvider : ISymbolProvider {
     public SymbolProvider(SemanticModel semanticModel) {
         this.semanticModel = semanticModel;
     }
+
     public IPropertySymbol? GetPropertySymbol(PropertyDeclarationSyntax propertyDeclarationSyntax, CancellationToken cancellationToken)
         => semanticModel.GetDeclaredSymbol(propertyDeclarationSyntax, cancellationToken);
+
+    public IMethodSymbol? GetMethodSymbol(MethodDeclarationSyntax methodDeclarationSyntax, CancellationToken cancellationToken) 
+        => semanticModel.GetDeclaredSymbol(methodDeclarationSyntax, cancellationToken);
 
     public ISymbol? GetSymbol(AttributeSyntax attributeSyntax, CancellationToken cancellationToken)
         => semanticModel.GetSymbolInfo(attributeSyntax, cancellationToken).Symbol;

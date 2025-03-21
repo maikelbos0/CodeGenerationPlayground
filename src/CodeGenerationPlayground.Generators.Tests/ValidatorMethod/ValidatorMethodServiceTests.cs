@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NSubstitute;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Xunit;
@@ -234,7 +235,7 @@ public class ValidatorMethodServiceTests {
 
         var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
 
-        var result = subject.GetValidatorMethodData();
+        var result = subject.GetValidatorMethodData(CancellationToken.None);
 
         Assert.Empty(result);
     }
@@ -262,7 +263,7 @@ public class ValidatorMethodServiceTests {
 
         var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
 
-        var result = subject.GetValidatorMethodData();
+        var result = subject.GetValidatorMethodData(CancellationToken.None);
 
         Assert.Empty(result);
     }
@@ -300,11 +301,11 @@ public class ValidatorMethodServiceTests {
         });
         symbolProvider.TryGetConstructorArgumentValue(attributeData3, Arg.Any<int>(), out Arg.Any<string?>()).Returns(callInfo => {
             callInfo[2] = "ValidatorMethod2";
-            return true; 
+            return true;
         });
         var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
 
-        var result = subject.GetValidatorMethodData();
+        var result = subject.GetValidatorMethodData(CancellationToken.None);
 
         Assert.Equal(2, result.Count);
         Assert.Contains(result, validatorMethodData => validatorMethodData.Name == "ValidatorMethod1");
@@ -350,10 +351,108 @@ public class ValidatorMethodServiceTests {
             return true;
         });
 
+        var methodSymbol = Substitute.For<IMethodSymbol>();
+        symbolProvider.GetMethodSymbol(Arg.Any<MethodDeclarationSyntax>(), CancellationToken.None).Returns(methodSymbol);
+        methodSymbol.Parameters.Returns(ImmutableArray<IParameterSymbol>.Empty);
+
         var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
 
-        var result = Assert.Single(subject.GetValidatorMethodData());
+        var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
 
-        Assert.Equal(2, result.CandidateMethods.Length);
+        Assert.Equal(2, result.ValidatorMethodCandidates.Length);
     }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, true, ParameterType.Object)]
+    [InlineData(true, true, ParameterType.ValidationContext)]
+    [InlineData(true, true, ParameterType.Object, ParameterType.ValidationContext)]
+    [InlineData(true, true, ParameterType.ValidationContext, ParameterType.Object)]
+    [InlineData(false, false)]
+    [InlineData(true, false, ParameterType.Invalid)]
+    [InlineData(true, false, ParameterType.Object, ParameterType.Invalid)]
+    [InlineData(true, false, ParameterType.Object, ParameterType.Object)]
+    [InlineData(true, false, ParameterType.ValidationContext, ParameterType.ValidationContext)]
+    [InlineData(true, false, ParameterType.ValidationContext, ParameterType.Object, ParameterType.Object)]
+    [InlineData(true, false, ParameterType.ValidationContext, ParameterType.Object, ParameterType.Invalid)]
+    public void GetValidatorMethodDataReturnsCorrectlyMappedCandidateMethod(bool returnBoolean, bool expectedIsValid, params ParameterType[] parameterTypes) {
+        var property = SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+            SyntaxFactory.Identifier("Foo")
+        );
+
+        var candidateMethod = SyntaxFactory.MethodDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(returnBoolean ? SyntaxKind.BoolKeyword : SyntaxKind.VoidKeyword)),
+            SyntaxFactory.Identifier("ValidatorMethod")
+        );
+
+        var parent = SyntaxFactory.ClassDeclaration("Bar")
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property, candidateMethod]));
+
+        var node = parent.Members.OfType<PropertyDeclarationSyntax>().Single();
+
+        var symbolProvider = Substitute.For<ISymbolProvider>();
+        var propertySymbol = Substitute.For<IPropertySymbol>();
+        var attributeData = Substitute.For<AttributeData>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns(propertySymbol);
+        propertySymbol.GetAttributes().Returns([attributeData]);
+        attributeData.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName);
+        symbolProvider.TryGetConstructorArgumentValue(attributeData, Arg.Any<int>(), out Arg.Any<string?>()).Returns(callInfo => {
+            callInfo[2] = "ValidatorMethod";
+            return true;
+        });
+
+        var methodSymbol = Substitute.For<IMethodSymbol>();
+        var parameterSymbols = ImmutableArray.CreateRange(parameterTypes.Select(CreateParameterSymbol));
+        symbolProvider.GetMethodSymbol(Arg.Any<MethodDeclarationSyntax>(), CancellationToken.None).Returns(methodSymbol);
+        methodSymbol.ReturnType.SpecialType.Returns(returnBoolean ? SpecialType.System_Boolean : SpecialType.System_Void);
+        methodSymbol.Parameters.Returns(parameterSymbols);
+
+        var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
+
+        var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
+
+        var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
+
+        Assert.Equal(expectedIsValid, candidateMethodData.IsValid);
+        Assert.Equal(parameterTypes.DefaultIfEmpty(ParameterType.None).First(), candidateMethodData.FirstParameterType);
+        Assert.Equal(parameterTypes.Skip(1).DefaultIfEmpty(ParameterType.None).First(), candidateMethodData.SecondParameterType);
+
+        IParameterSymbol CreateParameterSymbol(ParameterType parameterType) {
+            var parameterSymbol = Substitute.For<IParameterSymbol>();
+
+            if (parameterType == ParameterType.Object) {
+                parameterSymbol.Type.SpecialType.Returns(SpecialType.System_Object);
+            }
+            else if (parameterType == ParameterType.ValidationContext) {
+                var namedTypeSymbol = Substitute.For<INamedTypeSymbol>();
+
+                namedTypeSymbol.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns(ValidatorMethodConstants.GlobalFullyQualifiedValidationContextTypeName);
+                parameterSymbol.Type.Returns(namedTypeSymbol);
+            }
+            else {
+                parameterSymbol.Type.SpecialType.Returns(SpecialType.System_String);
+            }
+
+            return parameterSymbol;
+        }
+    }
+    /*
+        if (parameterSymbol.Type.SpecialType == SpecialType.System_Object && parameterSymbol.NullableAnnotation != NullableAnnotation.NotAnnotated) {
+            return ParameterType.Object;
+        }
+        else if (parameterSymbol.Type.HasName(ValidatorMethodConstants.GlobalFullyQualifiedValidationContextTypeName)) {
+            return ParameterType.ValidationContext;
+        }
+        else {
+            return ParameterType.Invalid;
+        }
+                    var isValid = candidateMethodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean && candidateMethodSymbol.Parameters.Length <= 2;
+                    var firstParameterType = candidateMethodSymbol.Parameters.Length > 0 ? GetParamaterType(candidateMethodSymbol.Parameters[0]) : ParameterType.None;
+                    var secondParameterType = candidateMethodSymbol.Parameters.Length > 1 ? GetParamaterType(candidateMethodSymbol.Parameters[1]) : ParameterType.None;
+*/
+
+
+    // TODO test this nonsense with parameters
+    // TODO test nullable separately
 }

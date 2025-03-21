@@ -66,7 +66,7 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             return;
         }
 
-        foreach (var validatorMethodData in service.GetValidatorMethodData()) {
+        foreach (var validatorMethodData in service.GetValidatorMethodData(context.CancellationToken)) {
             if (validatorMethodData.Name == null) {
                 context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
                 return;
@@ -85,9 +85,13 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
                 .Select(candidateMethodSymbol => candidateMethodSymbol!)
                 .ToList();
 
+            // TODO needs to check for 2+ also, different error message
             if (candidateMethodSymbols.Count(IsValidatorMethod) != 1) {
                 context.ReportDiagnostic(CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
             }
+            
+            // TODO add check for invalid access modifiers?
+            // TOOD add check for generic type parameters?
         }
     }
 
@@ -120,7 +124,7 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             validParameters++;
         }
 
-        if (candidateMethodSymbol.Parameters.Any(parameterSymbol => parameterSymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == ValidatorMethodConstants.GlobalFullyQualifiedValidatorMethodTypeName)) {
+        if (candidateMethodSymbol.Parameters.Any(parameterSymbol => parameterSymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == ValidatorMethodConstants.GlobalFullyQualifiedValidationContextTypeName)) {
             validParameters++;
         }
 

@@ -53,13 +53,13 @@ public class ValidatorMethodService {
         }
     }
 
-    public List<ValidatorMethodData> GetValidatorMethodData() {
+    public List<ValidatorMethodData> GetValidatorMethodData(CancellationToken cancellationToken) {
         var validatorMethodData = new List<ValidatorMethodData>();
 
         if (propertySymbol != null) {
             foreach (var attributeData in propertySymbol.GetAttributes()) {
                 if (attributeData.AttributeClass.HasName(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName) && symbolProvider.TryGetConstructorArgumentValue(attributeData, 0, out var validatorMethod)) {
-                    validatorMethodData.Add(new ValidatorMethodData(validatorMethod, GetCandidateMethodDeclarations(validatorMethod)));
+                    validatorMethodData.Add(new ValidatorMethodData(validatorMethod, GetCandidateMethodDeclarations(validatorMethod, cancellationToken)));
                 }
             }
         }
@@ -67,17 +67,47 @@ public class ValidatorMethodService {
         return validatorMethodData;
     }
 
-    private ImmutableArray<MethodDeclarationSyntax> GetCandidateMethodDeclarations(string? methodName) {
-        var candidateMethodDeclarations = new List<MethodDeclarationSyntax>();
+    private ImmutableArray<ValidatorMethodCandidateData> GetCandidateMethodDeclarations(string? methodName, CancellationToken cancellationToken) {
+        var candidateMethodDeclarations = new List<ValidatorMethodCandidateData>();
 
         if (typeDeclarationSyntax != null) {
             foreach (var member in typeDeclarationSyntax.Members) {
                 if (member is MethodDeclarationSyntax methodDeclarationSyntax && methodDeclarationSyntax.Identifier.Text == methodName) {
-                    candidateMethodDeclarations.Add(methodDeclarationSyntax);
+                    var candidateMethodSymbol = symbolProvider.GetMethodSymbol(methodDeclarationSyntax, cancellationToken);
+
+                    if (candidateMethodSymbol == null) {
+                        break;
+                    }
+
+                    var isValid = candidateMethodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean && candidateMethodSymbol.Parameters.Length <= 2;
+                    var firstParameterType = candidateMethodSymbol.Parameters.Length > 0 ? GetParamaterType(candidateMethodSymbol.Parameters[0]) : ParameterType.None;
+                    var secondParameterType = candidateMethodSymbol.Parameters.Length > 1 ? GetParamaterType(candidateMethodSymbol.Parameters[1]) : ParameterType.None;
+
+                    if (firstParameterType == ParameterType.Invalid || secondParameterType == ParameterType.Invalid) {
+                        isValid = false;
+                    }
+                    
+                    if (firstParameterType != ParameterType.None && firstParameterType == secondParameterType) {
+                        isValid = false;
+                    }
+
+                    candidateMethodDeclarations.Add(new(firstParameterType, secondParameterType, isValid));
                 }
             }
         }
 
         return ImmutableArray.CreateRange(candidateMethodDeclarations);
+    }
+
+    private ParameterType GetParamaterType(IParameterSymbol parameterSymbol) {
+        if (parameterSymbol.Type.SpecialType == SpecialType.System_Object) {
+            return ParameterType.Object;
+        }
+        else if (parameterSymbol.Type.HasName(ValidatorMethodConstants.GlobalFullyQualifiedValidationContextTypeName)) {
+            return ParameterType.ValidationContext;
+        }
+        else {
+            return ParameterType.Invalid;
+        }
     }
 }
