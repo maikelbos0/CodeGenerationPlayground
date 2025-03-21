@@ -359,7 +359,7 @@ public class ValidatorMethodServiceTests {
 
         var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
 
-        Assert.Equal(2, result.ValidatorMethodCandidates.Length);
+        Assert.Equal(2, result.MethodCandidates.Length);
     }
 
     [Theory]
@@ -412,7 +412,7 @@ public class ValidatorMethodServiceTests {
 
         var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
 
-        var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
+        var candidateMethodData = Assert.Single(result.MethodCandidates);
 
         Assert.Equal(expectedHasValidSignature, candidateMethodData.HasValidSignature);
         Assert.Equal(parameterTypes.DefaultIfEmpty(ParameterType.None).First(), candidateMethodData.FirstParameterType);
@@ -481,7 +481,7 @@ public class ValidatorMethodServiceTests {
 
         var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
 
-        var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
+        var candidateMethodData = Assert.Single(result.MethodCandidates);
 
         Assert.Equal(expectedParameterType, candidateMethodData.FirstParameterType);
     }
@@ -528,7 +528,7 @@ public class ValidatorMethodServiceTests {
 
         var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
 
-        var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
+        var candidateMethodData = Assert.Single(result.MethodCandidates);
 
         Assert.Equal(expectedIsAccessible, candidateMethodData.IsAccessible);
     }
@@ -574,7 +574,7 @@ public class ValidatorMethodServiceTests {
 
         var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
 
-        var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
+        var candidateMethodData = Assert.Single(result.MethodCandidates);
 
         Assert.Equal(expectedIsStatic, candidateMethodData.IsStatic);
     }
@@ -619,7 +619,7 @@ public class ValidatorMethodServiceTests {
 
         var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
 
-        var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
+        var candidateMethodData = Assert.Single(result.MethodCandidates);
 
         Assert.Equal(expectedIsGeneric, candidateMethodData.IsGeneric);
     }
