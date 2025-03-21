@@ -578,4 +578,49 @@ public class ValidatorMethodServiceTests {
 
         Assert.Equal(expectedIsStatic, candidateMethodData.IsStatic);
     }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void GetValidatorMethodDataReturnsCorrectIsGeneric(bool isGenericMethod, bool expectedIsGeneric) {
+        var property = SyntaxFactory.PropertyDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+            SyntaxFactory.Identifier("Foo")
+        );
+
+        var candidateMethod = SyntaxFactory.MethodDeclaration(
+            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)),
+            SyntaxFactory.Identifier("ValidatorMethod")
+        );
+
+        var parent = SyntaxFactory.ClassDeclaration("Bar")
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property, candidateMethod]));
+
+        var node = parent.Members.OfType<PropertyDeclarationSyntax>().Single();
+
+        var symbolProvider = Substitute.For<ISymbolProvider>();
+        var propertySymbol = Substitute.For<IPropertySymbol>();
+        var attributeData = Substitute.For<AttributeData>();
+        symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns(propertySymbol);
+        propertySymbol.GetAttributes().Returns([attributeData]);
+        attributeData.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName);
+        symbolProvider.TryGetConstructorArgumentValue(attributeData, Arg.Any<int>(), out Arg.Any<string?>()).Returns(callInfo => {
+            callInfo[2] = "ValidatorMethod";
+            return true;
+        });
+
+        var methodSymbol = Substitute.For<IMethodSymbol>();
+        symbolProvider.GetMethodSymbol(Arg.Any<MethodDeclarationSyntax>(), CancellationToken.None).Returns(methodSymbol);
+        methodSymbol.ReturnType.SpecialType.Returns(SpecialType.System_Boolean);
+        methodSymbol.IsGenericMethod.Returns(isGenericMethod);
+        methodSymbol.Parameters.Returns(ImmutableArray<IParameterSymbol>.Empty);
+
+        var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
+
+        var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
+
+        var candidateMethodData = Assert.Single(result.ValidatorMethodCandidates);
+
+        Assert.Equal(expectedIsGeneric, candidateMethodData.IsGeneric);
+    }
 }

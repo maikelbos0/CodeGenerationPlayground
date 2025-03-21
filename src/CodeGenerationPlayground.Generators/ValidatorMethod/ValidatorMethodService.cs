@@ -90,7 +90,7 @@ public class ValidatorMethodService {
                             isStatic = true;
                         }
                     }
-
+                    
                     var hasValidSignature = candidateMethodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean && candidateMethodSymbol.Parameters.Length <= 2;
                     var firstParameterType = candidateMethodSymbol.Parameters.Length > 0 ? GetParamaterType(candidateMethodSymbol.Parameters[0]) : ParameterType.None;
                     var secondParameterType = candidateMethodSymbol.Parameters.Length > 1 ? GetParamaterType(candidateMethodSymbol.Parameters[1]) : ParameterType.None;
@@ -103,7 +103,7 @@ public class ValidatorMethodService {
                         hasValidSignature = false;
                     }
 
-                    candidateMethodDeclarations.Add(new(firstParameterType, secondParameterType, hasValidSignature, isAccessible, isStatic));
+                    candidateMethodDeclarations.Add(new(firstParameterType, secondParameterType, isStatic, hasValidSignature, isAccessible, candidateMethodSymbol.IsGenericMethod));
                 }
             }
         }

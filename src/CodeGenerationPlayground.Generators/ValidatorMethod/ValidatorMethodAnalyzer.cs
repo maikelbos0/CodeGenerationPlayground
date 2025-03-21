@@ -90,8 +90,7 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
                 context.ReportDiagnostic(CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
             }
             
-            // TODO add check for invalid access modifiers?
-            // TOOD add check for generic type parameters?
+            // TOOD handle new checks with diagnostics
         }
     }
 

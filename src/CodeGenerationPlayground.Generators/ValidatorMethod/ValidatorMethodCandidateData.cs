@@ -1,4 +1,3 @@
 ﻿namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 
-public record struct ValidatorMethodCandidateData(ParameterType FirstParameterType, ParameterType SecondParameterType, bool HasValidSignature, bool IsAccessible, bool IsStatic);
-
+public record struct ValidatorMethodCandidateData(ParameterType FirstParameterType, ParameterType SecondParameterType, bool IsStatic, bool HasValidSignature, bool IsAccessible, bool IsGeneric);
