@@ -15,9 +15,10 @@ public class Foo {
     [ValidatorMethod(nameof(NoValidate2))]
     [ValidatorMethod(nameof(NoValidate3))]
     [ValidatorMethod(nameof(NoValidate4))]
+    [ValidatorMethod(nameof(NoValidate5))]
     public string? Qux { get; set; }
 
-    [ValidatorMethod(nameof(DoubleValidate)]
+    [ValidatorMethod(nameof(DoubleValidate))]
     public string? Quux { get; set; }
 
     public bool Validate1() => Bar != null;
@@ -35,6 +36,8 @@ public class Foo {
     public bool NoValidate3(object? first, object? second) => Qux != null;
 
     public bool NoValidate4(ValidationContext validationContext, object? value, string no) => value != null;
+
+    protected bool NoValidate5<TValue>(TValue value) => value != null;
 
     public bool DoubleValidate(object? value) => true;
 

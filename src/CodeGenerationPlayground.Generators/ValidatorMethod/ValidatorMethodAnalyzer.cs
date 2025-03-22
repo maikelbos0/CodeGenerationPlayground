@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 
@@ -44,11 +44,31 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
+    private static readonly DiagnosticDescriptor validatorMethodIsNotAccessibleDescriptor = new(
+        id: "CGP009",
+        title: "Validator method is not accessible",
+        messageFormat: "Validator method '{1}' specified by property '{0}' is not accessible; it should either be 'public' or 'internal'",
+        category: "Analyzer",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
+
+    private static readonly DiagnosticDescriptor validatorMethodCannotBeGenericDescriptor = new(
+        id: "CGP010",
+        title: "Validator method cannot be generic",
+        messageFormat: "Validator method '{1}' specified by property '{0}' cannot be generic",
+        category: "Analyzer",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         propertyNotOwnedByTypeDescriptor,
         validatorMethodNotFoundDescriptor,
         validatorMethodSignatureIsInvalidDescriptor,
-        multipleValidatorMethodsDescriptor
+        multipleValidatorMethodsDescriptor,
+        validatorMethodIsNotAccessibleDescriptor,
+        validatorMethodCannotBeGenericDescriptor
     );
 
     public override void Initialize(AnalysisContext context) {
@@ -83,13 +103,21 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             var validMethodCandidates = validatorMethodData.GetValidMethodCandidates();
 
             if (validMethodCandidates.Length == 0) {
-                context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, validatorMethodData.Name));
+                if (validatorMethodData.MethodCandidates.Any(validatorMethodCandidate => !validatorMethodCandidate.HasValidSignature)) {
+                    context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, validatorMethodData.Name));
+                }
+
+                if (validatorMethodData.MethodCandidates.Any(validatorMethodCandidate => !validatorMethodCandidate.IsAccessible)) {
+                    context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodIsNotAccessibleDescriptor, validatorMethodData.Name));
+                }
+
+                if (validatorMethodData.MethodCandidates.Any(validatorMethodCandidate => validatorMethodCandidate.IsGeneric)) {
+                    context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodCannotBeGenericDescriptor, validatorMethodData.Name));
+                }
             }
             else if (validMethodCandidates.Length > 1) {
                 context.ReportDiagnostic(service.CreateDiagnostic(multipleValidatorMethodsDescriptor, validatorMethodData.Name));
             }
-            
-            // TOOD handle new checks with diagnostics
         }
     }
 }
