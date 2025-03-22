@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 
 namespace CodeGenerationPlayground.Generators.ValidatorMethod;
@@ -80,17 +81,8 @@ public class ValidatorMethodService {
                         break;
                     }
 
-                    var isAccessible = false;
-                    var isStatic = false;
-                    foreach (var modifier in methodDeclarationSyntax.Modifiers) { 
-                        if (modifier.IsKind(SyntaxKind.PublicKeyword) || modifier.IsKind(SyntaxKind.InternalKeyword)) {
-                            isAccessible = true;
-                        }
-                        else if (modifier.IsKind(SyntaxKind.StaticKeyword)) {
-                            isStatic = true;
-                        }
-                    }
-                    
+                    var isAccessible = methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PublicKeyword) || modifier.IsKind(SyntaxKind.InternalKeyword));
+                    var isStatic = methodDeclarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.StaticKeyword));
                     var hasValidSignature = candidateMethodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean && candidateMethodSymbol.Parameters.Length <= 2;
                     var firstParameterType = candidateMethodSymbol.Parameters.Length > 0 ? GetParamaterType(candidateMethodSymbol.Parameters[0]) : ParameterType.None;
                     var secondParameterType = candidateMethodSymbol.Parameters.Length > 1 ? GetParamaterType(candidateMethodSymbol.Parameters[1]) : ParameterType.None;

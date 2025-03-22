@@ -2,9 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 
@@ -58,8 +56,6 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
 
         // We can get this from the service if we need to but currently I don't think it's needed; let's first move all logic to the service and then see
         var propertyDeclarationSyntax = (PropertyDeclarationSyntax)context.Node;
-        var propertySymbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclarationSyntax, context.CancellationToken)!;
-        var typeDeclarationSyntax = (TypeDeclarationSyntax)context.Node.Parent!;
 
         if (!service.HasValidParent) {
             context.ReportDiagnostic(CreateDiagnostic(propertyNotOwnedByTypeDescriptor, propertyDeclarationSyntax, null));
@@ -72,21 +68,15 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
                 return;
             }
 
-            var candidateMethodDeclarations = GetCandidateMethodDeclarations(typeDeclarationSyntax, validatorMethodData.Name);
-
-            if (candidateMethodDeclarations.Count == 0) {
+            if (validatorMethodData.MethodCandidates.Length == 0) {
                 context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
                 return;
             }
 
-            var candidateMethodSymbols = candidateMethodDeclarations
-                .Select(candidateMethodDeclaration => context.SemanticModel.GetDeclaredSymbol(candidateMethodDeclaration))
-                .Where(candidateMethodSymbol => candidateMethodSymbol != null)
-                .Select(candidateMethodSymbol => candidateMethodSymbol!)
-                .ToList();
+            var validMethodCandidates = validatorMethodData.GetValidMethodCandidates();
 
             // TODO needs to check for 2+ also, different error message
-            if (candidateMethodSymbols.Count(IsValidatorMethod) != 1) {
+            if (validMethodCandidates.Length != 1) {
                 context.ReportDiagnostic(CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
             }
             
@@ -101,32 +91,4 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             propertyDeclarationSyntax.Identifier.Text,
             methodName
         );
-
-    private List<MethodDeclarationSyntax> GetCandidateMethodDeclarations(TypeDeclarationSyntax typeDeclarationSyntax, string methodName)
-        => typeDeclarationSyntax.Members
-            .OfType<MethodDeclarationSyntax>()
-            .Where(m => m.Identifier.Text == methodName)
-            .ToList();
-
-    private bool IsValidatorMethod(IMethodSymbol candidateMethodSymbol) {
-        if (candidateMethodSymbol.ReturnType.SpecialType != SpecialType.System_Boolean) {
-            return false;
-        }
-
-        var validParameters = 0;
-
-        if (candidateMethodSymbol.Parameters.Length > 2) {
-            return false;
-        }
-
-        if (candidateMethodSymbol.Parameters.Any(parameterSymbol => parameterSymbol.Type.SpecialType == SpecialType.System_Object && parameterSymbol.NullableAnnotation != NullableAnnotation.NotAnnotated)) {
-            validParameters++;
-        }
-
-        if (candidateMethodSymbol.Parameters.Any(parameterSymbol => parameterSymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == ValidatorMethodConstants.GlobalFullyQualifiedValidationContextTypeName)) {
-            validParameters++;
-        }
-
-        return validParameters == candidateMethodSymbol.Parameters.Length;
-    }
 }
