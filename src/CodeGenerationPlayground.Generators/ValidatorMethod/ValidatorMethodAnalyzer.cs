@@ -35,10 +35,20 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
+    private static readonly DiagnosticDescriptor multipleValidatorMethodsDescriptor = new(
+        id: "CGP008",
+        title: "Multiple validator methods found",
+        messageFormat: "Multiple validator methods found named '{1}' specified by property '{0}'; only one validator method can be specified",
+        category: "Analyzer",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true
+    );
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
         propertyNotOwnedByTypeDescriptor,
         validatorMethodNotFoundDescriptor,
-        validatorMethodSignatureIsInvalidDescriptor
+        validatorMethodSignatureIsInvalidDescriptor,
+        multipleValidatorMethodsDescriptor
     );
 
     public override void Initialize(AnalysisContext context) {
@@ -72,9 +82,11 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
 
             var validMethodCandidates = validatorMethodData.GetValidMethodCandidates();
 
-            // TODO needs to check for 2+ also, different error message
-            if (validMethodCandidates.Length != 1) {
+            if (validMethodCandidates.Length == 0) {
                 context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, validatorMethodData.Name));
+            }
+            else if (validMethodCandidates.Length > 1) {
+                context.ReportDiagnostic(service.CreateDiagnostic(multipleValidatorMethodsDescriptor, validatorMethodData.Name));
             }
             
             // TOOD handle new checks with diagnostics
