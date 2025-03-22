@@ -114,4 +114,12 @@ public class ValidatorMethodService {
             return ParameterType.Invalid;
         }
     }
+
+    public Diagnostic CreateDiagnostic(DiagnosticDescriptor diagnosticDescriptor, string? methodName)
+        => Diagnostic.Create(
+            diagnosticDescriptor,
+            propertyDeclarationSyntax?.GetLocation(),
+            propertyDeclarationSyntax?.Identifier.Text,
+            methodName
+        );
 }

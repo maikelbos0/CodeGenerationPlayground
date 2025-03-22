@@ -54,22 +54,19 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
             return;
         }
 
-        // We can get this from the service if we need to but currently I don't think it's needed; let's first move all logic to the service and then see
-        var propertyDeclarationSyntax = (PropertyDeclarationSyntax)context.Node;
-
         if (!service.HasValidParent) {
-            context.ReportDiagnostic(CreateDiagnostic(propertyNotOwnedByTypeDescriptor, propertyDeclarationSyntax, null));
+            context.ReportDiagnostic(service.CreateDiagnostic(propertyNotOwnedByTypeDescriptor, null));
             return;
         }
 
         foreach (var validatorMethodData in service.GetValidatorMethodData(context.CancellationToken)) {
             if (validatorMethodData.Name == null) {
-                context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
+                context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodNotFoundDescriptor, validatorMethodData.Name));
                 return;
             }
 
             if (validatorMethodData.MethodCandidates.Length == 0) {
-                context.ReportDiagnostic(CreateDiagnostic(validatorMethodNotFoundDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
+                context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodNotFoundDescriptor, validatorMethodData.Name));
                 return;
             }
 
@@ -77,18 +74,10 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
 
             // TODO needs to check for 2+ also, different error message
             if (validMethodCandidates.Length != 1) {
-                context.ReportDiagnostic(CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, propertyDeclarationSyntax, validatorMethodData.Name));
+                context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, validatorMethodData.Name));
             }
             
             // TOOD handle new checks with diagnostics
         }
     }
-
-    private static Diagnostic CreateDiagnostic(DiagnosticDescriptor diagnosticDescriptor, PropertyDeclarationSyntax propertyDeclarationSyntax, string? methodName)
-        => Diagnostic.Create(
-            diagnosticDescriptor,
-            propertyDeclarationSyntax.GetLocation(),
-            propertyDeclarationSyntax.Identifier.Text,
-            methodName
-        );
 }
