@@ -8,7 +8,7 @@ public class ValidatorMethodDataTests {
     public void GetValidMethodCandidates() {
         var subject = new ValidatorMethodData(
             "Validate",
-            [],
+            "Namespace.Bar",
             [
                 new(ParameterType.None, ParameterType.None, false, false, true, false),
                 new(ParameterType.None, ParameterType.None, false, true, false, false),

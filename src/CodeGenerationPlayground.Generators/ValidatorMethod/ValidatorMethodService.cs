@@ -59,11 +59,11 @@ public class ValidatorMethodService {
         var validatorMethodData = new List<ValidatorMethodData>();
 
         if (propertySymbol != null) {
-            var ancestors = GetAncestors(cancellationToken);
+            var typeName = GetTypeName(cancellationToken);
 
             foreach (var attributeData in propertySymbol.GetAttributes()) {
                 if (attributeData.AttributeClass.HasName(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName) && symbolProvider.TryGetConstructorArgumentValue(attributeData, 0, out var validatorMethod)) {
-                    validatorMethodData.Add(new ValidatorMethodData(validatorMethod, ancestors, GetCandidateMethodDeclarations(validatorMethod, cancellationToken)));
+                    validatorMethodData.Add(new ValidatorMethodData(validatorMethod, typeName, GetCandidateMethodDeclarations(validatorMethod, cancellationToken)));
                 }
             }
         }
@@ -71,9 +71,13 @@ public class ValidatorMethodService {
         return ImmutableArray.CreateRange(validatorMethodData);
     }
 
-    private ImmutableArray<string> GetAncestors(CancellationToken cancellationToken) {
+    private string? GetTypeName(CancellationToken cancellationToken) {
+        if (typeDeclarationSyntax == null) {
+            return null;
+        }
+
         var ancestors = new Stack<string>();
-        SyntaxNode? parent = typeDeclarationSyntax;
+        var parent = typeDeclarationSyntax as SyntaxNode;
 
         while (parent != null) {
             cancellationToken.ThrowIfCancellationRequested();
@@ -84,10 +88,11 @@ public class ValidatorMethodService {
             else if (parent is BaseNamespaceDeclarationSyntax namespaceDeclarationSyntax) {
                 ancestors.Push(namespaceDeclarationSyntax.Name.ToString());
             }
+
             parent = parent.Parent;
         }
 
-        return ImmutableArray.CreateRange(ancestors);
+        return string.Join(".", ancestors);
     }
 
     private ImmutableArray<ValidatorMethodCandidateData> GetCandidateMethodDeclarations(string? methodName, CancellationToken cancellationToken) {

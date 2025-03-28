@@ -311,12 +311,8 @@ public class ValidatorMethodServiceTests {
         var results = subject.GetValidatorMethodData(CancellationToken.None);
 
         Assert.Equal(2, results.Length);
-        Assert.Contains(results, validatorMethodData => validatorMethodData.Name == "ValidatorMethod1");
-        Assert.Contains(results, validatorMethodData => validatorMethodData.Name == "ValidatorMethod2");
-
-        foreach (var result in results) {
-            Assert.Equal(result.Ancestors, ["Namespace", "Bar"]);
-        }
+        Assert.Contains(results, validatorMethodData => validatorMethodData.Name == "ValidatorMethod1" && validatorMethodData.TypeName == "Namespace.Bar");
+        Assert.Contains(results, validatorMethodData => validatorMethodData.Name == "ValidatorMethod2" && validatorMethodData.TypeName == "Namespace.Bar");
     }
 
     [Fact]
