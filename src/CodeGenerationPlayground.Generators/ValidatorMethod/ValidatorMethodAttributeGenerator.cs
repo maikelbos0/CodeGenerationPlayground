@@ -16,16 +16,23 @@ public class ValidatorMethodAttributeGenerator : IIncrementalGenerator {
                 ValidatorMethodConstants.FullyQualifiedAttributeName,
                 static (syntaxNode, _) => syntaxNode is PropertyDeclarationSyntax,
                 static (context, cancellationToken) => new ValidatorMethodService(new SymbolProvider(context.SemanticModel), context.TargetNode, cancellationToken).GetValidatorMethodData(cancellationToken))
+            .SelectMany((validatorMethodData, _) => validatorMethodData)
+            .Where(validatorMethodData => validatorMethodData.MethodCandidates.Count(validatorMethodCandidataData => validatorMethodCandidataData.IsValid) == 1)
             .Collect();
 
         context.RegisterSourceOutput(validatorMethodData, static (context, validatorMethodData) => {
             var sourceBuilder = new StringBuilder();
+            var validatorMethodDataByType = validatorMethodData.GroupBy(validatorMethodData => validatorMethodData.TypeName);
 
             sourceBuilder.Append(ValidatorMethodConstants.AttributeImplementationStart);
-            sourceBuilder.Append(@"
+            sourceBuilder.AppendLine(@"
             return ValidationResult.Success;
             /* ");
-            sourceBuilder.Append(string.Join(", ", validatorMethodData.SelectMany(x => x).Select(x => x.Name)));
+            foreach (var validatorMethodType in validatorMethodDataByType) {
+                sourceBuilder.Append(validatorMethodType.Key);
+                sourceBuilder.Append(": ");
+                sourceBuilder.AppendLine(string.Join(", ", validatorMethodType.Select(x => x.Name)));
+            }
             sourceBuilder.Append(" */");
             sourceBuilder.Append(ValidatorMethodConstants.AttributeImplementationEnd);
 

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace CodeGenerationPlayground.Consumer;
+
 public class Foo {
     [ValidatorMethod(nameof(Validate1))]
     [ValidatorMethod(nameof(Validate2))]
