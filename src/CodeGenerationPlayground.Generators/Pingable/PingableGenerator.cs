@@ -76,11 +76,8 @@ public class PingableGenerator : IIncrementalGenerator {
             else if (parent is InterfaceDeclarationSyntax interfaceDeclarationSyntax) {
                 methodOwner = new MethodOwnerData(methodOwner, interfaceDeclarationSyntax.Identifier.Text, MethodOwnerType.Interface);
             }
-            else if (parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax) {
+            else if (parent is BaseNamespaceDeclarationSyntax namespaceDeclarationSyntax) {
                 methodOwner = new MethodOwnerData(methodOwner, namespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace);
-            }
-            else if (parent is FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclarationSyntax) {
-                methodOwner = new MethodOwnerData(methodOwner, fileScopedNamespaceDeclarationSyntax.Name.ToString(), MethodOwnerType.Namespace);
             }
         }
 
