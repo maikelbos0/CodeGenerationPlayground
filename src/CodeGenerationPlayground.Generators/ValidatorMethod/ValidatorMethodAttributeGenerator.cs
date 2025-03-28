@@ -3,55 +3,36 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 
 [Generator(LanguageNames.CSharp)]
 public class ValidatorMethodAttributeGenerator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource($"{ValidatorMethodConstants.AttributeName}.g.cs", SourceText.From(ValidatorMethodConstants.AttributeDeclaration, Encoding.UTF8)));
+        context.RegisterPostInitializationOutput(context => context.AddSource($"{ValidatorMethodConstants.AttributeName}.1.g.cs", SourceText.From(ValidatorMethodConstants.AttributeDeclaration, Encoding.UTF8)));
 
-        var methodNames = context.SyntaxProvider
+        var validatorMethodData = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 ValidatorMethodConstants.FullyQualifiedAttributeName,
                 static (syntaxNode, _) => syntaxNode is PropertyDeclarationSyntax,
-                static (context, cancellationToken) => GetValidatorMethodName(context, cancellationToken))
-            .Where(methodName => methodName != null)
+                static (context, cancellationToken) => new ValidatorMethodService(new SymbolProvider(context.SemanticModel), context.TargetNode, cancellationToken).GetValidatorMethodData(cancellationToken))
             .Collect();
 
-        context.RegisterSourceOutput(methodNames, static (context, methodNames) => {
+        context.RegisterSourceOutput(validatorMethodData, static (context, validatorMethodData) => {
             var sourceBuilder = new StringBuilder();
 
-            sourceBuilder.AppendLine("/*");
-            foreach (var methodName in methodNames.Distinct()) {
-                sourceBuilder.AppendLine(methodName);
-            }
-            sourceBuilder.AppendLine("*/");
+            sourceBuilder.Append(ValidatorMethodConstants.AttributeImplementationStart);
+            sourceBuilder.Append(@"
+            return ValidationResult.Success;
+            /* ");
+            sourceBuilder.Append(string.Join(", ", validatorMethodData.SelectMany(x => x).Select(x => x.Name)));
+            sourceBuilder.Append(" */");
+            sourceBuilder.Append(ValidatorMethodConstants.AttributeImplementationEnd);
 
             context.AddSource(
-                "test.g.cs",
+                $"{ValidatorMethodConstants.AttributeName}.2.g.cs",
                 sourceBuilder.ToString()
             );
         });
-    }
-
-    private static string? GetValidatorMethodName(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken) {
-        var propertyDeclarationSyntax = (PropertyDeclarationSyntax)context.TargetNode;
-        var symbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclarationSyntax, cancellationToken);
-
-        if (symbol == null) {
-            return null;
-        }
-
-        foreach (var attributeData in symbol.GetAttributes()) {
-            if (attributeData.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == ValidatorMethodConstants.GlobalFullyQualifiedAttributeName
-                && attributeData.ConstructorArguments.Length > 0) {
-
-                return attributeData.ConstructorArguments[0].Value?.ToString();
-            }
-        }
-
-        return null;
     }
 }

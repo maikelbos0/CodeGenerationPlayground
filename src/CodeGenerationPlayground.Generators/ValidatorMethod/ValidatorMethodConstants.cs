@@ -6,10 +6,11 @@ public static class ValidatorMethodConstants {
     public const string GlobalFullyQualifiedAttributeName = $"global::{FullyQualifiedAttributeName}";
     public const string AttributeDeclaration = $@"
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace {nameof(CodeGenerationPlayground)} {{
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
-    public partial class {AttributeName} : Attribute {{
+    public partial class {AttributeName} : ValidationAttribute {{
         public string MethodName {{ get; }}
         
         public {AttributeName}(string methodName) {{
@@ -17,6 +18,20 @@ namespace {nameof(CodeGenerationPlayground)} {{
         }}
     }}
 }}
+";
+    public const string AttributeImplementationStart = $@"
+#nullable enable
+
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace {nameof(CodeGenerationPlayground)} {{
+    public partial class {ValidatorMethodConstants.AttributeName} : ValidationAttribute {{
+        protected override ValidationResult? IsValid(object? _, ValidationContext validationContext) {{";
+    public const string AttributeImplementationEnd = @"
+        }
+    }
+}
 ";
     public const string GlobalFullyQualifiedValidationContextTypeName = "global::System.ComponentModel.DataAnnotations.ValidationContext";
 }
