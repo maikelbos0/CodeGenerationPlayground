@@ -55,7 +55,7 @@ public class ValidatorMethodService {
         }
     }
 
-    public List<ValidatorMethodData> GetValidatorMethodData(CancellationToken cancellationToken) {
+    public ImmutableArray<ValidatorMethodData> GetValidatorMethodData(CancellationToken cancellationToken) {
         var validatorMethodData = new List<ValidatorMethodData>();
 
         if (propertySymbol != null) {
@@ -68,7 +68,7 @@ public class ValidatorMethodService {
             }
         }
 
-        return validatorMethodData;
+        return ImmutableArray.CreateRange(validatorMethodData);
     }
 
     private ImmutableArray<string> GetAncestors(CancellationToken cancellationToken) {

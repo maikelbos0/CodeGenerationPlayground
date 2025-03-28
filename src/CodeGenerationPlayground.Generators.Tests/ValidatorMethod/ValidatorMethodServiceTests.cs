@@ -310,7 +310,7 @@ public class ValidatorMethodServiceTests {
 
         var results = subject.GetValidatorMethodData(CancellationToken.None);
 
-        Assert.Equal(2, results.Count);
+        Assert.Equal(2, results.Length);
         Assert.Contains(results, validatorMethodData => validatorMethodData.Name == "ValidatorMethod1");
         Assert.Contains(results, validatorMethodData => validatorMethodData.Name == "ValidatorMethod2");
 
