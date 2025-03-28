@@ -278,7 +278,10 @@ public class ValidatorMethodServiceTests {
         var parent = SyntaxFactory.ClassDeclaration("Bar")
             .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([property]));
 
-        var node = parent.Members.Single();
+        var grandParent = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.IdentifierName("Namespace"))
+            .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([parent]));
+
+        var node = ((ClassDeclarationSyntax)grandParent.Members.Single()).Members.Single();
 
         var symbolProvider = Substitute.For<ISymbolProvider>();
         var propertySymbol = Substitute.For<IPropertySymbol>();
@@ -305,13 +308,16 @@ public class ValidatorMethodServiceTests {
         });
         var subject = new ValidatorMethodService(symbolProvider, node, CancellationToken.None);
 
-        var result = subject.GetValidatorMethodData(CancellationToken.None);
+        var results = subject.GetValidatorMethodData(CancellationToken.None);
 
-        Assert.Equal(2, result.Count);
-        Assert.Contains(result, validatorMethodData => validatorMethodData.Name == "ValidatorMethod1");
-        Assert.Contains(result, validatorMethodData => validatorMethodData.Name == "ValidatorMethod2");
+        Assert.Equal(2, results.Count);
+        Assert.Contains(results, validatorMethodData => validatorMethodData.Name == "ValidatorMethod1");
+        Assert.Contains(results, validatorMethodData => validatorMethodData.Name == "ValidatorMethod2");
+
+        foreach (var result in results) {
+            Assert.Equal(result.Ancestors, ["Namespace", "Bar"]);
+        }
     }
-
 
     [Fact]
     public void GetValidatorMethodDataReturnsCandidateMethodsIfPresent() {

@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 
-public record struct ValidatorMethodData(string? Name, ImmutableArray<ValidatorMethodCandidateData> MethodCandidates) {
+public record struct ValidatorMethodData(string? Name, ImmutableArray<string> Ancestors, ImmutableArray<ValidatorMethodCandidateData> MethodCandidates) {
     public readonly ImmutableArray<ValidatorMethodCandidateData> GetValidMethodCandidates() {
         var validMethodCandidates = new List<ValidatorMethodCandidateData>();
 

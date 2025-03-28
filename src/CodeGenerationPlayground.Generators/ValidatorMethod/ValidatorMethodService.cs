@@ -59,14 +59,35 @@ public class ValidatorMethodService {
         var validatorMethodData = new List<ValidatorMethodData>();
 
         if (propertySymbol != null) {
+            var ancestors = GetAncestors(cancellationToken);
+
             foreach (var attributeData in propertySymbol.GetAttributes()) {
                 if (attributeData.AttributeClass.HasName(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName) && symbolProvider.TryGetConstructorArgumentValue(attributeData, 0, out var validatorMethod)) {
-                    validatorMethodData.Add(new ValidatorMethodData(validatorMethod, GetCandidateMethodDeclarations(validatorMethod, cancellationToken)));
+                    validatorMethodData.Add(new ValidatorMethodData(validatorMethod, ancestors, GetCandidateMethodDeclarations(validatorMethod, cancellationToken)));
                 }
             }
         }
 
         return validatorMethodData;
+    }
+
+    private ImmutableArray<string> GetAncestors(CancellationToken cancellationToken) {
+        var ancestors = new Stack<string>();
+        SyntaxNode? parent = typeDeclarationSyntax;
+
+        while (parent != null) {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (parent is TypeDeclarationSyntax typeDeclarationSyntax) {
+                ancestors.Push(typeDeclarationSyntax.Identifier.Text);
+            }
+            else if (parent is BaseNamespaceDeclarationSyntax namespaceDeclarationSyntax) {
+                ancestors.Push(namespaceDeclarationSyntax.Name.ToString());
+            }
+            parent = parent.Parent;
+        }
+
+        return ImmutableArray.CreateRange(ancestors);
     }
 
     private ImmutableArray<ValidatorMethodCandidateData> GetCandidateMethodDeclarations(string? methodName, CancellationToken cancellationToken) {
