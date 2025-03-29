@@ -1,0 +1,1 @@
+﻿validationContext.ObjectInstance is Namespace.Bar obj2 && obj2.Validate(value)

@@ -18,11 +18,23 @@ public record struct ValidatorMethodData(string? Name, string? TypeName, Immutab
         return ImmutableArray.CreateRange(validMethodCandidates);
     }
 
-    public void WriteSource(StringBuilder sourceBuilder) {
+    public void WriteSource(StringBuilder sourceBuilder, ref int typedInstance) {
         var method = MethodCandidates.Single(methodCandidate => methodCandidate.IsValid);
 
-        sourceBuilder.Append(Name)
-            .Append("(");
+        if (method.IsStatic) {
+            sourceBuilder.Append(TypeName);
+        }
+        else {
+            sourceBuilder.Append(ValidatorMethodConstants.ValidationContextParameterName)
+                .Append(".ObjectInstance is ")
+                .Append(TypeName)
+                .Append(" obj")
+                .Append(typedInstance)
+                .Append(" && obj")
+                .Append(typedInstance++);
+        }
+
+        sourceBuilder.Append(".").Append(Name).Append("(");
 
         switch (method.FirstParameterType) {
             case ParameterType.Object:

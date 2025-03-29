@@ -27,22 +27,31 @@ public class ValidatorMethodDataTests {
     }
 
     [Theory]
-    [InlineData(ParameterType.None, ParameterType.None)]
-    [InlineData(ParameterType.Object, ParameterType.None)]
-    [InlineData(ParameterType.ValidationContext, ParameterType.None)]
-    [InlineData(ParameterType.Object, ParameterType.ValidationContext)]
-    [InlineData(ParameterType.ValidationContext, ParameterType.Object)]
-    public Task WriteSource(ParameterType firstParameterType, ParameterType secondParameterType) {
+    [InlineData(ParameterType.None, ParameterType.None, false)]
+    [InlineData(ParameterType.Object, ParameterType.None, false)]
+    [InlineData(ParameterType.ValidationContext, ParameterType.None, false)]
+    [InlineData(ParameterType.Object, ParameterType.ValidationContext, false)]
+    [InlineData(ParameterType.ValidationContext, ParameterType.Object, false)]
+    [InlineData(ParameterType.ValidationContext, ParameterType.Object, true)]
+    public Task WriteSource(ParameterType firstParameterType, ParameterType secondParameterType, bool isStatic) {
         var sourceBuilder = new StringBuilder();
         var subject = new ValidatorMethodData(
             "Validate",
             "Namespace.Bar",
             [
-                new(firstParameterType, secondParameterType, false, true, true, false)
+                new(firstParameterType, secondParameterType, isStatic, true, true, false)
             ]
         );
+        var objectInstance = 2;
 
-        subject.WriteSource(sourceBuilder);
+        subject.WriteSource(sourceBuilder, ref objectInstance);
+
+        if (isStatic) {
+            Assert.Equal(2, objectInstance);
+        }
+        else {
+            Assert.Equal(3, objectInstance);
+        }
 
         return Verifier.Verify(sourceBuilder.ToString());
     }
