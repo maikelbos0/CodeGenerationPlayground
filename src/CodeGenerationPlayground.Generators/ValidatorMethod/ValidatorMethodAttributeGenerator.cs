@@ -20,20 +20,17 @@ public class ValidatorMethodAttributeGenerator : IIncrementalGenerator {
             .Where(validatorMethodData => validatorMethodData.MethodCandidates.Count(validatorMethodCandidataData => validatorMethodCandidataData.IsValid) == 1)
             .Collect();
 
-        context.RegisterSourceOutput(validatorMethodData, static (context, validatorMethodData) => {
+        context.RegisterSourceOutput(validatorMethodData, static (context, allValidatorMethodData) => {
             var sourceBuilder = new StringBuilder();
-            var validatorMethodDataByType = validatorMethodData.GroupBy(validatorMethodData => validatorMethodData.TypeName);
+            var typedInstance = 0;
 
             sourceBuilder.Append(ValidatorMethodConstants.AttributeImplementationStart);
-            sourceBuilder.AppendLine(@"
-            return ValidationResult.Success;
-            /* ");
-            foreach (var validatorMethodType in validatorMethodDataByType) {
-                sourceBuilder.Append(validatorMethodType.Key);
-                sourceBuilder.Append(": ");
-                sourceBuilder.AppendLine(string.Join(", ", validatorMethodType.Select(x => x.Name)));
+            foreach (var validatorMethodData in allValidatorMethodData) {
+                sourceBuilder.Append(@"
+            isValid &= ");
+                validatorMethodData.WriteSource(sourceBuilder, ref typedInstance);
+                sourceBuilder.Append(";");
             }
-            sourceBuilder.Append(" */");
             sourceBuilder.Append(ValidatorMethodConstants.AttributeImplementationEnd);
 
             context.AddSource(

@@ -30,7 +30,17 @@ using System.ComponentModel.DataAnnotations;
 namespace {nameof(CodeGenerationPlayground)} {{
     public partial class {ValidatorMethodConstants.AttributeName} : ValidationAttribute {{
         protected override ValidationResult? IsValid(object? {ValueParameterName}, ValidationContext {ValidationContextParameterName}) {{
+            var isValid = true;
+";
     public const string AttributeImplementationEnd = @"
+
+            if (isValid) {
+                var memberNames = validationContext.MemberName is { } memberName ? new[] { memberName } : null;
+
+                return new ValidationResult(FormatErrorMessage(validationContext.DisplayName), memberNames);
+            }
+
+            return ValidationResult.Success;
         }
     }
 }
