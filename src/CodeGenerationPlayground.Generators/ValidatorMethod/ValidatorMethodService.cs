@@ -56,7 +56,7 @@ public class ValidatorMethodService {
     }
 
     public ImmutableArray<ValidatorMethodData> GetValidatorMethodData(CancellationToken cancellationToken) {
-        var validatorMethodData = new List<ValidatorMethodData>();
+        var validatorMethodData = new HashSet<ValidatorMethodData>();
 
         if (propertySymbol != null) {
             var typeName = GetTypeName(cancellationToken);
