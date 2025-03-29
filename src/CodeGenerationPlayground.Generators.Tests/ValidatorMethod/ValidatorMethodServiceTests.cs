@@ -324,9 +324,7 @@ public class ValidatorMethodServiceTests {
         var grandParent = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.IdentifierName("Namespace"))
             .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>([parent]));
 
-        var syntaxTree = SyntaxFactory.SyntaxTree(grandParent, path: "Namespace/Bar.cs");
-
-        var node =  ((ClassDeclarationSyntax)((NamespaceDeclarationSyntax)syntaxTree.GetRoot(TestContext.Current.CancellationToken)).Members.Single()).Members.Single();
+        var node =  ((ClassDeclarationSyntax)grandParent.Members.Single()).Members.Single();
 
         var symbolProvider = Substitute.For<ISymbolProvider>();
         var propertySymbol = Substitute.For<IPropertySymbol>();
@@ -334,7 +332,6 @@ public class ValidatorMethodServiceTests {
         symbolProvider.GetPropertySymbol(Arg.Any<PropertyDeclarationSyntax>(), CancellationToken.None).Returns(propertySymbol);
         propertySymbol.GetAttributes().Returns([attributeData]);
         attributeData.AttributeClass!.ToDisplayString(Arg.Any<SymbolDisplayFormat>()).Returns(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName);
-        attributeData.ApplicationSyntaxReference!.Span.Returns(new TextSpan(15, 10));
         symbolProvider.TryGetConstructorArgumentValue(attributeData, Arg.Any<int>(), out Arg.Any<string?>()).Returns(callInfo => {
             callInfo[2] = "ValidatorMethod";
             return true;
@@ -343,7 +340,6 @@ public class ValidatorMethodServiceTests {
                 
         var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
 
-        Assert.Equal("Namespace/Bar.cs:[15..25)", result.Identifier);
         Assert.Equal("ValidatorMethod", result.Name);
         Assert.Equal("Namespace.Bar", result.TypeName);
     }

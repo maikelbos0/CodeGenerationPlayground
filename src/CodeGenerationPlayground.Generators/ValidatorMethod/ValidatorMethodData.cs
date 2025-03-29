@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CodeGenerationPlayground.Generators.ValidatorMethod;
 
-public record struct ValidatorMethodData(string? Identifier, string? Name, string? TypeName, ImmutableArray<ValidatorMethodCandidateData> MethodCandidates) {
+public record struct ValidatorMethodData(string? Name, string? TypeName, ImmutableArray<ValidatorMethodCandidateData> MethodCandidates) {
     public readonly ImmutableArray<ValidatorMethodCandidateData> GetValidMethodCandidates() {
         var validMethodCandidates = new List<ValidatorMethodCandidateData>();
 

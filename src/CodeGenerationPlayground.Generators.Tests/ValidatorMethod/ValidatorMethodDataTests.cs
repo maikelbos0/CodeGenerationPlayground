@@ -10,7 +10,6 @@ public class ValidatorMethodDataTests {
     [Fact]
     public void GetValidMethodCandidates() {
         var subject = new ValidatorMethodData(
-            "Identifier",
             "Validate",
             "Namespace.Bar",
             [
@@ -37,7 +36,6 @@ public class ValidatorMethodDataTests {
     public Task WriteSource(ParameterType firstParameterType, ParameterType secondParameterType, bool isStatic) {
         var sourceBuilder = new StringBuilder();
         var subject = new ValidatorMethodData(
-            "Identifier",
             "Validate",
             "Namespace.Bar",
             [
