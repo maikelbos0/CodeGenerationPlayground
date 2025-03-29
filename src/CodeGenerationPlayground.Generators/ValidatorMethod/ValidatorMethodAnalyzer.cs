@@ -90,13 +90,13 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
         }
 
         foreach (var validatorMethodData in service.GetValidatorMethodData(context.CancellationToken)) {
-            if (validatorMethodData.Name == null) {
-                context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodNotFoundDescriptor, validatorMethodData.Name));
+            if (validatorMethodData.MethodName == null) {
+                context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodNotFoundDescriptor, validatorMethodData.MethodName));
                 return;
             }
 
             if (validatorMethodData.MethodCandidates.Length == 0) {
-                context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodNotFoundDescriptor, validatorMethodData.Name));
+                context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodNotFoundDescriptor, validatorMethodData.MethodName));
                 return;
             }
 
@@ -104,19 +104,19 @@ public class ValidatorMethodAnalyzer : DiagnosticAnalyzer {
 
             if (validMethodCandidates.Length == 0) {
                 if (validatorMethodData.MethodCandidates.Any(validatorMethodCandidate => !validatorMethodCandidate.HasValidSignature)) {
-                    context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, validatorMethodData.Name));
+                    context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodSignatureIsInvalidDescriptor, validatorMethodData.MethodName));
                 }
 
                 if (validatorMethodData.MethodCandidates.Any(validatorMethodCandidate => !validatorMethodCandidate.IsAccessible)) {
-                    context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodIsNotAccessibleDescriptor, validatorMethodData.Name));
+                    context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodIsNotAccessibleDescriptor, validatorMethodData.MethodName));
                 }
 
                 if (validatorMethodData.MethodCandidates.Any(validatorMethodCandidate => validatorMethodCandidate.IsGeneric)) {
-                    context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodCannotBeGenericDescriptor, validatorMethodData.Name));
+                    context.ReportDiagnostic(service.CreateDiagnostic(validatorMethodCannotBeGenericDescriptor, validatorMethodData.MethodName));
                 }
             }
             else if (validMethodCandidates.Length > 1) {
-                context.ReportDiagnostic(service.CreateDiagnostic(multipleValidatorMethodsDescriptor, validatorMethodData.Name));
+                context.ReportDiagnostic(service.CreateDiagnostic(multipleValidatorMethodsDescriptor, validatorMethodData.MethodName));
             }
         }
     }

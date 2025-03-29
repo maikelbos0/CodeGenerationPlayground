@@ -376,8 +376,9 @@ public class ValidatorMethodServiceTests {
                 
         var result = Assert.Single(subject.GetValidatorMethodData(CancellationToken.None));
 
-        Assert.Equal("ValidatorMethod", result.Name);
         Assert.Equal("Namespace.Bar", result.TypeName);
+        Assert.Equal("Foo", result.PropertyName);
+        Assert.Equal("ValidatorMethod", result.MethodName);
     }
 
     [Fact]
