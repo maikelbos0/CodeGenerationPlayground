@@ -19,6 +19,8 @@ namespace {nameof(CodeGenerationPlayground)} {{
     }}
 }}
 ";
+    public const string ValueParameterName = "value";
+    public const string ValidationContextParameterName = "validationContext";
     public const string AttributeImplementationStart = $@"
 #nullable enable
 
@@ -27,7 +29,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace {nameof(CodeGenerationPlayground)} {{
     public partial class {ValidatorMethodConstants.AttributeName} : ValidationAttribute {{
-        protected override ValidationResult? IsValid(object? _, ValidationContext validationContext) {{";
+        protected override ValidationResult? IsValid(object? {ValueParameterName}, ValidationContext {ValidationContextParameterName}) {{
     public const string AttributeImplementationEnd = @"
         }
     }
