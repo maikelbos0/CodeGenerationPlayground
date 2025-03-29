@@ -58,12 +58,17 @@ public class ValidatorMethodService {
     public ImmutableArray<ValidatorMethodData> GetValidatorMethodData(CancellationToken cancellationToken) {
         var validatorMethodData = new List<ValidatorMethodData>();
 
-        if (propertySymbol != null) {
+        if (propertySymbol != null && propertyDeclarationSyntax != null) {
             var typeName = GetTypeName(cancellationToken);
 
             foreach (var attributeData in propertySymbol.GetAttributes()) {
-                if (attributeData.AttributeClass.HasName(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName) && symbolProvider.TryGetConstructorArgumentValue(attributeData, 0, out var validatorMethod)) {
-                    validatorMethodData.Add(new ValidatorMethodData(validatorMethod, typeName, GetCandidateMethodDeclarations(validatorMethod, cancellationToken)));
+                if (attributeData.AttributeClass.HasName(ValidatorMethodConstants.GlobalFullyQualifiedAttributeName) 
+                    && attributeData.ApplicationSyntaxReference != null
+                    && symbolProvider.TryGetConstructorArgumentValue(attributeData, 0, out var validatorMethod)) {
+                    
+                    var identifier = $"{propertyDeclarationSyntax.SyntaxTree.FilePath}:{attributeData.ApplicationSyntaxReference.Span}";
+
+                    validatorMethodData.Add(new ValidatorMethodData(identifier, validatorMethod, typeName, GetCandidateMethodDeclarations(validatorMethod, cancellationToken)));
                 }
             }
         }
